@@ -1,8 +1,15 @@
 <2019-01-14 Mon 13:09>
 * THE ALGORITHM DESIGN MANUAL - Steven Skiena
 ** Chapter 1: Introduction to Algorithm Design
+DISCLAIMER: Longer "pseudocode" examples are written in Python 3 to conform to some kind of syntax highlighting while maintaining the benefit of being readable. Shorter examples are written in TypeScript because that's unfortunately what I am most comfortable in!
+
+*** Key sections
+- [[1-def][Definition of an algorithm]]
+- [[1-counterexamples][Hunting for counterexamples]]
+- [[1-induction-recursion][Induction and recursion]]
+
 **** What is an algorithm?
-*An algorithm is a procedure to accomplish a specific task.* More specifically, an algorithm must solve a general, well-specified problem.
+*An algorithm is a procedure to accomplish a specific task.* More specifically, an algorithm must solve a general, well-specified problem. <<1-def>>
     
 ***** Problem 1: Sorting
 - INPUT :: A sequence of ~n~ keys, ~a_1, ... , a_n~
@@ -27,7 +34,7 @@ We seek algorithms that are:
 The most demonstrable way we have to prove the correctness of our algorithms is called a /proof/, which has several parts:
 
 1. A clear, precise statement of what you are trying to prove.
-2. A set of assumptions of things which are taken to be true, and hence used as part of the proof.
+2. A set of assumptions of things which are taken to be true, and hence used as part kof the proof.
 3. A little square (QED) denoting that you have finished.
 
 Proofs are simply /honest arguments explaining why an algorithm satisfied a nontrivial correctness property./
@@ -55,8 +62,8 @@ It's impossible to prove the correctness of an algorithm if we don't even know w
 Some problem specifications allow too much variety in input instances; these problems are /too general/ and it's likely that no solution exists. On the other hand, some specifications are too specific, and define an impossible question by their definition.
 
 ***** Common pitfalls in algorithm design
-1. Asking an ill-defined question: "What is the /best/ way to do this?" What does /"best"/ even mean?
-2. Creating compound goals (keep yo
+1. Asking an ill-defined question: "What is the /best/ way to do this?" What does "/best/" even mean?
+2. Creating compound goals
 
 **** 1.3.3 - Demonstrating Incorrectness 
 ***** The best way to prove that an algorithm is incorrect is to produce an instance of an incorrect answer.
@@ -73,7 +80,138 @@ Since you are reasoning about a given counter-example's instance, it should be k
 ****** Simplicity 
 As in, all unnecessary details should be gone. Think about the last StackOverflow question you saw with a terrible problem description? How should you be able to prove that an algorithm is incorrect if nobody can understand your counter-example?  
 
-***** TODO Hunting for counter-examples
+***** Hunting for counter-examples <<1-counterexamples>>
+Several techniques exist to help you see through an algorithm!
+
+<2019-01-14 Mon 14:37>
+****** Think small 
+When algorithms fail, there is often a very simple example on which they fail. /Look carefully at several small examples/, because they are easier to verify and reason about.
+
+****** Think exhaustively
+Think of blatant examples that logically cause a solution to be incorrect, and think of ways that these counter-examples can be constructed. This can be considered as the counterpart to the "brute-force" approach of /solving/ algorithms. 
+
+****** Hunt for the weakness 
+If a proposed algorithm consistently says "compare a bunch of values, then always take the biggest" (a /greedy algorithm/), think about why this might end up being wrong. Remember multiple choice quizzes, where (A) and (B) were both "bold" options, and you could kind of sniff out that they were both wrong? It's like that.
+
+****** Go for a tie 
+On that note, if a heuristic /is/ greedy, take away that greediness and force the base case for that heuristic to be indifferent towards its inputs. This is an extension of "hunting for the weakness" where you take away a piece of logic that holds a heuristic together, and see what mistakes it is covering.
+
+****** Seek extremes 
+Reason about extreme examples. These examples often have very unique, or at least more well-defined, I/O cases which bring about their results. These counter-examples are easier to see and verify.
+
+**Take-Home Lesson:** Searching for counter-examples is the best way to disprove the correctness of a heuristic. 
+ 
+*** 1.3.4 Induction and Recursion <<1-induction-recursion>>
+Failure to find a counterexample to a given algorithm does not prove its correctness/incorrectness. After we've exhausted our primitive logic, we turn to mathematical methods.
+
+***** Induction
+Is it magic? Who knows?
+
+**Induction** (and recursion, which /is the same thing/) involves coming up with a single base case for a problem, then /assuming it to be true all the time/ and then proving that it is indeed true for the general case.
+
+Let's try to prove =Insertion Sort= using induction. Here is the algorithm:
+
+****** Problem: Prove that insertion sort works for all sets of uniform type ={S}= or such that =insertionSort(T implements IEnumerable): T[]= produces a valid output. 
+- INPUT :: A set of size =n=, all of whose members are enumerable and are of uniform type =T=.
+- OUTPUT :: A sorted set of size =n= and type =T=.
+
+1. The first step is to exclude all edge cases. The key question here is **What inputs/outputs could cause our problem statement to be impossible?**
+  + EDGE CASE :: The input array is not of uniform type.
+  + EDGE CASE :: The input is not an array.
+  + EDGE CASE :: The input array contains non-enumerable properties (objects, functions, other complex data structures... etc.)
+
+After eliminating edge cases (verbosely), our code looks like this:
+#+BEGIN_SRC python 
+def insertion_sort(array):
+  if type(array) is not 'List':
+    return false
+
+  expected_type = type(array[0]) # if all members are of this type, then the remaining two edge cases are eliminated
+  for member in array:
+    if type(member) is not type(array[0]):
+      return false
+#+END_SRC
+
+2. Next, let's assume our base case. What is the simplest possible input that we could feed into our algorithm while still maintaining the validity of the problem statement?
+   + We've defined that we must pass in an array. What's the simplest form of array we could use?
+   + BASE CASE :: Let input be an array of a single number and is already sorted.
+   + Having a base case that requires no action isn't bad; in fact, it's from the "correctness" of the input that we can derive the majority of the properties of a correct output. To dive deeper into this base case, we assert that:
+   + BASE CASE :: Given any position =i= in a sorted array, the first =i - 1= elements of that array must be sorted in some order.
+
+We can use this base case to make some progress. Importantly, we should check that base case against the smallest possible incorrect solution. How then do we deal with: =insertionSort([2, 1])=?
+
+    a. We have only two values to compare: =2= and =1=.
+    b. To sort these values, we have to look at them both simultaneously.
+    c. Mathematically, they are then sorted if =1= comes before =2=.
+
+#+BEGIN_SRC python 
+def insertion_sort(array):
+  if type(array) is not 'List':
+    return false
+
+  expected_type = type(array[0]) # if all members are of this type, then the remaining two edge cases are eliminated
+  for (member, i) in enumerate(array):
+    if type(member) is not type(array[0]):
+      return false
+    
+    j = i + 1 # now, we are looking at two values at the same time: `i` and `j` 
+    if array[0] > array[1]: # assert our incorrect counter-example
+      helper = array[0]
+      (array[0], array[1]) = (array[1], array[0]) # now our array-of-two should be sorted 
+#+END_SRC
+
+It seems like we have arrived at a clear "specific" solution, and this solution is extendable into a general solution. Now that we have a valid base case, we can use **inductive reasoning** to **recursively** arrive at the final solution:
+
+#+BEGIN_SRC python 
+def insertion_sort(array):
+  if type(array) is not 'List':
+    return false
+
+  expected_type = type(array[0]) # if all members are of this type, then the remaining two edge cases are eliminated
+  for (member, i) in enumerate(array):
+    if type(member) is not type(array[0]):
+      return false
+    
+    while i and array[0] > array[1]: # apply our correct solution recursively
+      j = i + 1 # now, we are looking at two values at the same time: `i` and `j` 
+      helper = array[0]
+      (array[0], array[1]) = (array[1], array[0]) # now our array-of-two should be sorted 
+      i -= 1 # our recursion step
+
+  return array
+#+END_SRC
 
 
+Let's look carefuly at the comment =#our recursion step=.
+
+What does that recursion step actually do for us?
+
+1. It calls the exact same algorithm we have defined, but feeds in a new set of two numbers. 
+2. **It exits** when a boundary case is reached. (In this case, when i = 0, there is nothing else to compare).
+3. You might notice that the only "recursive" part of this =insertion_sort= function is the =while= loop. That's correct, and that's why you've most likely seen insertion sort (in Python) implemented like this:
+
+#+BEGIN_SRC python
+def insertion_sort(array):
+  if type(array) is not 'List':
+    return false
+
+  def sort(a, b):
+    try:
+      if array[a] > array[b]:
+        (array[a], array[b]) = (array[b], array[a])
+      elif !a: return
+      else: return
+    except TypeError:
+      print("you weren't supposed to do that")
+    sort(a - 1, b - 1) # recursive call
+ 
+  return array
+#+END_SRC
+
+***** Caveats with induction 
+It can be easy to let incorrect inductive proofs pass as true or false. One reason we took so much care to respect our problem boundaries in the above example is because many inductive assumptions will overstep those boundaries, resulting in an incorrect solution.
+
+Another reason is due to extending the problem bit by bit. Adding even the smallest /incorrect/ clause to a problem may either shift the problem scope entirely, or cause us to assume a bunch of incorrect things in an attempt to frame a solution to the "new" problem.
+
+**Take-Home Lesson**: Mathematical induction is life.
 
