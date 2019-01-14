@@ -99,7 +99,7 @@ On that note, if a heuristic /is/ greedy, take away that greediness and force th
 ****** Seek extremes 
 Reason about extreme examples. These examples often have very unique, or at least more well-defined, I/O cases which bring about their results. These counter-examples are easier to see and verify.
 
-**Take-Home Lesson:** Searching for counter-examples is the best way to disprove the correctness of a heuristic. 
+*Take-Home Lesson:* Searching for counter-examples is the best way to disprove the correctness of a heuristic. 
  
 *** 1.3.4 Induction and Recursion <<1-induction-recursion>>
 Failure to find a counterexample to a given algorithm does not prove its correctness/incorrectness. After we've exhausted our primitive logic, we turn to mathematical methods.
@@ -160,7 +160,7 @@ def insertion_sort(array):
       (array[0], array[1]) = (array[1], array[0]) # now our array-of-two should be sorted 
 #+END_SRC
 
-It seems like we have arrived at a clear "specific" solution, and this solution is extendable into a general solution. Now that we have a valid base case, we can use **inductive reasoning** to **recursively** arrive at the final solution:
+It seems like we have arrived at a clear "specific" solution, and this solution is extendable into a general solution. Now that we have a valid base case, we can use *inductive reasoning* to *recursively* arrive at the final solution:
 
 #+BEGIN_SRC python 
 def insertion_sort(array):
@@ -187,7 +187,7 @@ Let's look carefuly at the comment =#our recursion step=.
 What does that recursion step actually do for us?
 
 1. It calls the exact same algorithm we have defined, but feeds in a new set of two numbers. 
-2. **It exits** when a boundary case is reached. (In this case, when i = 0, there is nothing else to compare).
+2. *It exits* when a boundary case is reached. (In this case, when i = 0, there is nothing else to compare).
 3. You might notice that the only "recursive" part of this =insertion_sort= function is the =while= loop. That's correct, and that's why you've most likely seen insertion sort (in Python) implemented like this:
 
 #+BEGIN_SRC python
@@ -213,5 +213,5 @@ It can be easy to let incorrect inductive proofs pass as true or false. One reas
 
 Another reason is due to extending the problem bit by bit. Adding even the smallest /incorrect/ clause to a problem may either shift the problem scope entirely, or cause us to assume a bunch of incorrect things in an attempt to frame a solution to the "new" problem.
 
-**Take-Home Lesson**: Mathematical induction is life.
+*Take-Home Lesson*: Mathematical induction is life.
 
