@@ -1,0 +1,31 @@
+<2019-01-14 Mon 13:09>
+* THE ALGORITHM DESIGN MANUAL - Steven Skiena
+** Chapter 1: Introduction to Algorithm Design
+**** What is an algorithm?
+*An algorithm is a procedure to accomplish a specific task.* More specifically, an algorithm must solve a general, well-specified problem.
+    
+**** Problem 1: Sorting
+- INPUT :: A sequence of ~n~ keys, ~a_1, ... , a_n~
+- OUTPUT :: The permutation of the input sequence such that ~a'_1 <= a'_2 <= ... <= a'_{n-1} <= a'_n~
+
+An example of an /instance/ of sorting might be an array of any sort of data type (~const arr: number[] = [1, 2, 3]~). However, given that instance (of numbers), we now know that we are dealing with... only that instance of numbers. This problem has several possible /input instances/.l
+
+**** Algorithms: three desirable properties
+We seek algorithms that are:
+
+1. /correct/
+2. /efficient/
+3. /easy to implement/
+
+*** 1.1 Take-Home Lesson: Heuristics aren't algorithms 
+
+*** 1.2 Take-Home Lesson: A correct-looking algorithm isn't always correct. Reason about all your tools and demonstrate an algorithm's correctness first.
+
+*** 1.3 - Reasoning About Correctness
+The most demonstrable way we have to prove the correctness of our algorithms is called a /proof/, which has several parts:
+
+1. **A clear, precise statement of what you are trying to prove.**
+2. **A set of assumptions of things which are taken to be true, and hence used as part of the proof.**
+3. **A little square (QED) denoting that you have finished.**
+
+Proofs are simply /honest arguments explaining why an algorithm satisfied a nontrivial correctness property./ 
