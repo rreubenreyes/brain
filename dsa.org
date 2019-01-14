@@ -107,7 +107,7 @@ Failure to find a counterexample to a given algorithm does not prove its correct
 ***** Induction
 Is it magic? Who knows?
 
-**Induction** (and recursion, which /is the same thing/) involves coming up with a single base case for a problem, then /assuming it to be true all the time/ and then proving that it is indeed true for the general case.
+*Induction* (and recursion, which /is the same thing/) involves coming up with a single base case for a problem, then /assuming it to be true all the time/ and then proving that it is indeed true for the general case.
 
 Let's try to prove =Insertion Sort= using induction. Here is the algorithm:
 
@@ -140,9 +140,9 @@ def insertion_sort(array):
 
 We can use this base case to make some progress. Importantly, we should check that base case against the smallest possible incorrect solution. How then do we deal with: =insertionSort([2, 1])=?
 
-    a. We have only two values to compare: =2= and =1=.
-    b. To sort these values, we have to look at them both simultaneously.
-    c. Mathematically, they are then sorted if =1= comes before =2=.
+    a) We have only two values to compare: =2= and =1=.
+    b) To sort these values, we have to look at them both simultaneously.
+    c) Mathematically, they are then sorted if =1= comes before =2=.
 
 #+BEGIN_SRC python 
 def insertion_sort(array):
