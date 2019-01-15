@@ -1,5 +1,5 @@
-* THE ELEMENTS OF COMUTING SYSTEMS - Noam Nisan and Shimon Schocken
-*** Key Sections
+* THE ELEMENTS OF COMPUTING SYSTEMS - Noam Nisan and Shimon Schocken
+*** Key Sections 
 
 [[1-world-below][- The world below as we know it]]
 
@@ -14,7 +14,7 @@ We will be learning how to create a complete and working computer system, from t
 
 "/The only kind of learning which significantly influences behavior is self-discovered or self-appropriated--truth that has been assimilated in experience./"
 
-*** The World Above
+*** The World Above 
 Consider this trivial code:
 
 #+BEGIN_SRC C
@@ -36,7 +36,7 @@ The nuances of any computer program, starting from the first transistor and lead
 
 An intimate understanding of the world below is one of the things that separates naive programmers from sophisticated developers--people who can create complex /technologies/, not just /applications/ (of technologies that already exist).
 
-*** Abstractions
+*** Abstractions 
 It is through building abstractions from the bottom up that we free up the mental capacity to actually go so far up.
 
 We built the NAND gate, and we abstracted it away from our thoughts so that we could focus on other thing. This led to AND, which leads to OR, which leads to XOR, which leads to the adder... and so on. *A good abstraction focuses only on "What is this thing doing?" rather than "How does it do it?".
@@ -48,6 +48,7 @@ As we dive into the lands below, we'll find out more about the following...
 **** The Road Down to Hardware Land
 **** Hardware Land
 
+
 ** Chapter 1: Boolean Logic 
 Every digital device is based on a set of chips designed to store and process information. They share the same common hardware: *Boolean logic gates*.
 
@@ -57,7 +58,7 @@ This chapter focuses on the construction of logic gates. To do this, we'll need 
 **** 1.1.1 - Boolean Algebra 
 There are two rules in Boolean algebra: Yes and no, /1 and 0/.
 
-***** Truth tables
+***** Truth tables 
 The most common and simplest way to specify a Boolean function is to write a truth table, which graphically represents a given Boolean function's output for given input. They can also be represented as mathematical functions. See [[fig-1.1][Figure 1.1]].
 
 +--------+--------+--------+--------+
@@ -79,7 +80,7 @@ The most common and simplest way to specify a Boolean function is to write a tru
 +--------+--------+--------+--------+
 |1       |1       |1       |0       |
 +--------+--------+--------+--------+
-/Figure 1: Truth table representation of a Boolean function =f(x, y, z) = (x + y) * z'=. <<fig-1.1>>/
+/Figure 1.1: Truth table representation of a Boolean function =f(x, y, z) = (x + y) * z'=. <<fig-1.1>>/
 
 ***** Canonical representation 
 Also called /minterm/ and /maxterm/:
@@ -91,3 +92,183 @@ Doing either of these results in an expression that is equivalent to the logic e
 
 This also teaches us that *all Boolean functions can be built with =And=, =Or=, and =Not=.*
 
+**** 1.1.2 - Gate Logic 
+A /gate/ is a physical device that implements a Boolean function. Physically, a gate works by connecting I/O to I/O pins. The structure of the gate determines what the input/output of each pin should be to achieve a particular result. Gates are implemented today using /transistors/.
+
+We begin our process of abstraction with gates.
+
+***** Primitive and composite gates
+A /composite gate/ is simply an implementation of a (usually more complex than normal) logical function through the use of two or more gates. For example, the three-input =And= is implemented by =And(And(a, b), c)=.
+
+A gate /interface/ refers to dealing mainly with the gate's I/O, while gate /implementation/ deals with actually putting the circuit together using primitive gates. The only reason computer programmers really deal with gate implementation is to try to optimize low-level logic past what is currently possible in a given system. Meaning, the only requirement a computer programmer needs out of working with gates is the guarantee that all gates of the same type will produce the same results, with the same interface.
+
+**** 1.1.3 - Actual hardware construction 
+While it is easy to chain together primitive gates to arrive at simpler composite gate designs, testing the logical function of these gates quickly becomes physically unviable if we were to be building these gates ourselves. This is why we use virtual tools like /HDL (Hardware Description Language)/ and /VHDL (Virtual HDL)/.
+
+**** 1.1.4 - Hardware Description Language (HDL) 
+HDL/VHDL is a fancy way to imply that "we test our circuits in a simulation environment". HDL is the standard by which many gates are tested before fabrication, and is the first language abstraction we have run into so far.
+
+***** Guts of a HDL program  
+There are a few parts to an HDL program:
+
+****** Header 
+The /header/ section specifies the chip /interface/ (=CHIP=). It specifies the chip name and the names of all input and output pins.
+
+****** Parts 
+The /parts/ (=PARTS=) section describes the names and topology of all the lower-level parts (other chips) from which this particular chip is constructed. Each part is represented by a /statement/ that specifies this part name, and crucially, the way it is connected to the other parts of the design.
+
+Inter-part connections are described by creating and connecting /internal pins/ as needed. All =PARTS= connections are passed into gate interfaces as needed. See [[1-fig-1.6a][Figure 1.6a]] for an implementation of HDL to construct a XOR gate.
+
+#+BEGIN_SRC
+/* Xor.hdl */
+CHIP Xor {
+  IN a, b; /* these are external */
+  OUT out; /* same */
+  PARTS:
+    Not(in=a, out=nota); /* using a new internal pin `nota` */
+    Not(in=b, out=notb); /* the fact that `Not` has input pin `in` is an API specification */
+    And(a=a, b=notb, out=w1);
+    And(a=nota, b=b, out=w2);
+    Or(a=w1, b=w2, out=out);
+}
+#+END_SRC
+/Figure 1.6a: A =Xor= gate implemented in HDL./ <<1-fig-1.6a>>
+
+****** Testing 
+HDL scripts are contained within file extension =.hdl=, while tests are contained within =.tst=. A test script simply assigns binary inputs to the chip interface and produces the logical output file to a =.out= file, as a truth table. The syntax is as follows ([[1-fig-1.6b][Figure 1.6b]]).
+
+#+BEGIN_SRC
+load Xor.hdl,
+output-list a, b, out; 
+set a 0, set b 0;
+eval, output;
+set a 0, set b 1;
+eval, output;
+set a 1, set b 0;
+eval, output;
+set a 1, set b 1;
+#+END_SRC
+/Figure 1.6b: A =Xor= gate test, =Xor.tst=./ <<1-fig-1.6a>>
+
+**** 1.1.5 Hardware Simulation 
+Since HDL is a hardware construction /language/, the process of writing and debugging HDL programs is pretty much the same as in software development. If we were using a compiled language like C, we would send our raw code to a compiler to be translated into assembly. Instead, however, we use a /hardware simulator/.
+
+A hardware simulator is also a computer program... it's really just a HDL compiler, but the purpose of HDL is very specific, hence the name of the compiler. 
+
+*** 1.2 - Specification 
+Now we will specify a typical set of gates, each designed to carry out a common Boolean operation. We will be following these gates all the way to the design of a modern computer!
+
+**** 1.2.1 - Nand 
+The truth table specification is as follows:
++-----+-----+----------+
+|a    |b    |Nand(a, b)|
++-----+-----+----------+
+|0    |0    |1         |
+|0    |1    |1         |
+|1    |0    |1         |
+|1    |1    |0         |
++-----+-----+----------+
+
+The API specification is as follows:
+#+BEGIN_SRC
+Chip name: Nand
+Inputs:    a, b
+Outputs:   out
+Function:  If a=b=1 then out=0 else out=1
+Comment:   This gate is considered primitive and thus there is no need to implement it.
+#+END_SRC
+
+**** 1.2.2 - Basic Logic Gates 
+Here is the API specification for other basic logic gates.
+
+***** Not 
+#+BEGIN_SRC
+Chip name: Not
+Inputs:    in
+Outputs:   out
+Function:  If in=0 then out=1 else out=0
+#+END_SRC
+
+***** And 
+#+BEGIN_SRC
+Chip name: And
+Inputs:    a, b
+Outputs:   out
+Function:  If a=b=1 then out=1 else out=0
+#+END_SRC
+
+***** Or 
+#+BEGIN_SRC
+Chip name: Or
+Inputs:    a, b
+Outputs:   out
+Function:  If a=1 or b=1 then out=1 else out=0
+#+END_SRC
+
+***** Multiplexor 
+#+BEGIN_SRC
+Chip name: Mux
+Inputs:    a, b, sel
+Outputs:   out
+Function:  If sel=0 then out=a else out=b
+#+END_SRC
+
+A multiplexor is a three-input gate that uses one of the inputs as a /selection bit/, and picks either =a= or =b= as its output depending on that selection bit. (=a= and =b= are usually the result of other input functions!)
+
+***** Demultiplexor 
+#+BEGIN_SRC
+Chip name: DMux
+Inputs:    in, sel
+Outputs:   a, b
+Function:  If sel=0 then {a=in, b=0} else {a=0, b=in}
+#+END_SRC
+A demultiplexor is similar in that it takes in a single input plus a selection bit, then produces two outputs. One of the outputs (=a= or =b=) is then assigned the value of =in= depending on the value of =sel=.
+
+**** 1.2.3 - Multi-Bit Versions of Basic Gates 
+Today, computer hardware is typically designed to operate on multi-bit arrays, not just single bits. These are called /buses/. A 32-bit bus, for example, simply operates on 32 bits at once, taking in 32 inputs from an input bus, and outputting another 32 bits. The buses do not incorporate multiple gates /in series/, but rather /in parallel/, so that outputs are all individual.
+
+**** 1.2.4 - Multi-Way Versions of Basic Gates 
+An /n-way/ gate, on the other hand, /does/ wire primitive gates in series. An /8-way =Or= gate/, for example, has eight input pins, =in[8]=, and produces a single output if any of those input pints are set to =1=.
+
+***** The M-Way/N-Bit Multiplexor 
+Multiplexors used multi-bit multi-way are essential in constructing computer platforms. Let's break it down:
+
+A *16-bit multiplexor* consists of an input =in[15]= plus selection bit =sel=, and an output =out[15]=:
+#+BEGIN_SRC
+Chip name: Mux4 
+Inputs:    in[15], sel
+Outputs:   out[15]
+Function:  If sel=0 then for i=0...15 out[i]=a[i] ... else out[i]=b[i]
+#+END_SRC
+
+A *4-way multiplexor* consists of an input =in[4]= plus two selection bits, corresponding to the number of possible input permutations, and a single output:
+#+BEGIN_SRC
+Chip name: Mux4Way 
+Inputs:    in[4], sel0, sel1
+Outputs:   out
+Function:  If Nand(sel0, sel1) then out=in[0], if sel0, Not(sel1) then out=in[1] ... etc. 
+#+END_SRC
+
+A *16-bit, 4-way multiplexor* consists of four 16-bit inputs =a[15], b[15], c[15], d[15]= plus two selection bits and an output =out[15]=:
+#+BEGIN_SRC
+Chip name: Mux4Way16 
+Inputs:    a[15], b[15], c[15], d[15], sel[2]
+Outputs:   out[15]
+Function:  If sel=00 then out=a, if sel=01 then out=b, ... etc. 
+#+END_SRC
+Note what is special about this chip: *It takes 4 possible 16-bit inputs, and turns it into one 16-bit output.* The usefulness of a selection bit is now much more obvious!
+
+*** 1.3 - Implementation 
+Primitive gates are our elementary building blocks. In particular, we will build an entire computing system off of just one primitive gate: =Nand=. The following primitive gates can be build using just Nand: =Nand -> Not -> And -> Or/Xor -> Mux/DMux -> Multi-bit primitives -> Multi-bit Mux -> Multi-way
+
+*** 1.4 & 1.5 - Perspective and Project 
+We use =Nand= as our single primitive as a means of teaching, though it is not the only way to build computer systems from the ground up. We can study /digital design/ or /logic design/ for more in-depth knowledge.
+
+**** Project 
+- OBJECTIVE :: Implement all the logic gates presented in the chapter. The only building blocks that you can use are primitive Nand gates and the composite gates that you will gradually build on top of them.
+- RESOURCES :: Use the hardware simulator provided by /nand2tetris/. All chips should be implemented in HDL, with accompanying tests. Some HDL files or test files are missing, and it is our job to figure out how to re-implement those.
+- CONTRACT :: When loaded into the hardware simulator, our chip design should produce the outputs listed in the supplied =.cmp= file.
+- STEPS ::
+1. Read Appendix A1 - A6.
+2. Go through the /hardware simulator tutorial/ parts I, II, and III.
+3. Build and simulate all the chips specified in =projects/01=. 
