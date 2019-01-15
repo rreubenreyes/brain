@@ -1,0 +1,93 @@
+* THE ELEMENTS OF COMUTING SYSTEMS - Noam Nisan and Shimon Schocken
+*** Key Sections
+
+[[1-world-below][- The world below as we know it]]
+
+** Introduction 
+This book teaches three things:
+
+1. How computers work
+2. How to break complex problems into manageable modules
+3. How to develop large-scale hardware and software systems
+   
+We will be learning how to create a complete and working computer system, from the ground-up.
+
+"/The only kind of learning which significantly influences behavior is self-discovered or self-appropriated--truth that has been assimilated in experience./"
+
+*** The World Above
+Consider this trivial code:
+
+#+BEGIN_SRC C
+int main (void) {
+  printf("%s", "Hello world!");
+  return 0;
+}
+#+END_SRC
+
+This is written in C. Newcomers often see the =void= or =%s= and ask what they mean, because they tend to be a bit too low level to understand at first glance.
+
+What if I told you this wasn't even scratching the surface? For the computer to understand C, it must /parse/ the text, /uncover/ the semantics, and /reexpress it/ into something that can be understood by a computer. This step is known as *compilation*. C compiles down to assembly code, which compiles down to machine code.
+
+Also, consider that /machine language itself is also an abstraction/. It is a set of binary codes that was designed to work specifically with the machine that is running the code. That is, it must be realized with a certain /chipset/ that is built using a specific system architecture. These chipset devices contain registers, memory units, ALU, and so on.
+
+Going even deeper, realize that each of these devices is functionally held together by /logic gates/: Specific combinations of transistors that deterministically produce the same logical output if given the same logical input.
+
+The nuances of any computer program, starting from the first transistor and leading up to the UX, start from the very bottom--the first transistor.
+
+An intimate understanding of the world below is one of the things that separates naive programmers from sophisticated developers--people who can create complex /technologies/, not just /applications/ (of technologies that already exist).
+
+*** Abstractions
+It is through building abstractions from the bottom up that we free up the mental capacity to actually go so far up.
+
+We built the NAND gate, and we abstracted it away from our thoughts so that we could focus on other thing. This led to AND, which leads to OR, which leads to XOR, which leads to the adder... and so on. *A good abstraction focuses only on "What is this thing doing?" rather than "How does it do it?".
+
+*** The World Below <<1-world-below>>
+As we dive into the lands below, we'll find out more about the following...
+
+**** High-Level Language Land 
+**** The Road Down to Hardware Land
+**** Hardware Land
+
+** Chapter 1: Boolean Logic 
+Every digital device is based on a set of chips designed to store and process information. They share the same common hardware: *Boolean logic gates*.
+
+*** 1.1 - Background 
+This chapter focuses on the construction of logic gates. To do this, we'll need to know some Boolean algebra!
+
+**** 1.1.1 - Boolean Algebra 
+There are two rules in Boolean algebra: Yes and no, /1 and 0/.
+
+***** Truth tables
+The most common and simplest way to specify a Boolean function is to write a truth table, which graphically represents a given Boolean function's output for given input. They can also be represented as mathematical functions. See [[fig-1.1][Figure 1.1]].
+
++--------+--------+--------+--------+
+|x       |y       |z       |f(x,y,z)|
++--------+--------+--------+--------+
+|0       |0       |0       |0       |
++--------+--------+--------+--------+
+|0       |0       |1       |0       |
++--------+--------+--------+--------+
+|0       |1       |0       |1       |
++--------+--------+--------+--------+
+|0       |0       |1       |0       |
++--------+--------+--------+--------+
+|1       |0       |0       |1       |
++--------+--------+--------+--------+
+|1       |0       |1       |0       |
++--------+--------+--------+--------+
+|1       |1       |0       |1       |
++--------+--------+--------+--------+
+|1       |1       |1       |0       |
++--------+--------+--------+--------+
+/Figure 1: Truth table representation of a Boolean function =f(x, y, z) = (x + y) * z'=. <<fig-1.1>>/
+
+***** Canonical representation 
+Also called /minterm/ and /maxterm/:
+
+- The /minterm/ is gathered by taking a truth table and Adding together literals whose combinations produce a function output of =1=,then Or-ing those terms together.
+- The /maxterm/ is gathered by taking a truth table and doing the same thing, but in reverse order.
+
+Doing either of these results in an expression that is equivalent to the logic expressed by the entire truth table. Using the canonical representation is a way to formulate a simple expression.
+
+This also teaches us that *all Boolean functions can be built with =And=, =Or=, and =Not=.*
+

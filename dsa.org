@@ -25,10 +25,10 @@ We seek algorithms that are:
 3. /easy to implement/
 
 *** 1.1
-**Take-Home Lesson**: Heuristics aren't algorithms
+*Take-Home Lesson*: Heuristics aren't algorithms
 
 *** 1.2
-**Take-Home Lesson**: A correct-looking algorithm isn't always correct. Reason about all your tools and demonstrate an algorithm's correctness first.
+*Take-Home Lesson*: A correct-looking algorithm isn't always correct. Reason about all your tools and demonstrate an algorithm's correctness first.
 
 *** 1.3 - Reasoning About Correctness
 The most demonstrable way we have to prove the correctness of our algorithms is called a /proof/, which has several parts:
@@ -48,7 +48,7 @@ The three most common forms of algorithmic notation are:
 
 All three can prove useful because of the tradeoff in readability/expressiveness carried by each choice.
 
-**Take-Home Lesson** The heart of any algorithm is an /idea/, If your idea is not clearly revealed when you an express an algorithm, then you are using too low-level a notation to describe it.
+*Take-Home Lesson* The heart of any algorithm is an /idea/, If your idea is not clearly revealed when you an express an algorithm, then you are using too low-level a notation to describe it.
 
 **** 1.3.2 - Problems and Properties
 ***** Problem specifications
@@ -99,9 +99,9 @@ On that note, if a heuristic /is/ greedy, take away that greediness and force th
 ****** Seek extremes 
 Reason about extreme examples. These examples often have very unique, or at least more well-defined, I/O cases which bring about their results. These counter-examples are easier to see and verify.
 
-*Take-Home Lesson:* Searching for counter-examples is the best way to disprove the correctness of a heuristic. 
+*Take-Home Lesson*:* Searching for counter-examples is the best way to disprove the correctness of a heuristic. 
  
-*** 1.3.4 Induction and Recursion <<1-induction-recursion>>
+**** 1.3.4 Induction and Recursion <<1-induction-recursion>>
 Failure to find a counterexample to a given algorithm does not prove its correctness/incorrectness. After we've exhausted our primitive logic, we turn to mathematical methods.
 
 ***** Induction
@@ -213,5 +213,5 @@ It can be easy to let incorrect inductive proofs pass as true or false. One reas
 
 Another reason is due to extending the problem bit by bit. Adding even the smallest /incorrect/ clause to a problem may either shift the problem scope entirely, or cause us to assume a bunch of incorrect things in an attempt to frame a solution to the "new" problem.
 
-*Take-Home Lesson*: Mathematical induction is life.
+*Take-Home Lesson**: Mathematical induction is life.
 
