@@ -1,8 +1,10 @@
+#+STARTUP: indent
 * THE ELEMENTS OF COMPUTING SYSTEMS - Noam Nisan and Shimon Schocken
 *** Key Sections 
 
 [[1-world-below][- The world below as we know it]]
 [[1-hdl][- HDL]]
+[[nand-project-01][- Project 01]]
 
 ** Introduction 
 This book teaches three things:
@@ -266,7 +268,7 @@ Primitive gates are our elementary building blocks. In particular, we will build
 *** 1.4 & 1.5 - Perspective and Project 
 We use =Nand= as our single primitive as a means of teaching, though it is not the only way to build computer systems from the ground up. We can study /digital design/ or /logic design/ for more in-depth knowledge.
 
-**** Project 01
+**** Project 01 <<nand-project-01>>
 - OBJECTIVE :: Implement all the logic gates presented in the chapter. The only building blocks that you can use are primitive Nand gates and the composite gates that you will gradually build on top of them.
 - RESOURCES :: Use the hardware simulator provided by /nand2tetris/. All chips should be implemented in HDL, with accompanying tests. Some HDL files or test files are missing, and it is our job to figure out how to re-implement those.
 - CONTRACT :: When loaded into the hardware simulator, our chip design should produce the outputs listed in the supplied =.cmp= file.
@@ -275,7 +277,7 @@ We use =Nand= as our single primitive as a means of teaching, though it is not t
 2. Go through the /hardware simulator tutorial/ parts I, II, and III.
 3. Build and simulate all the chips specified in =projects/01=. 
 
-***** Project log
+***** TODO Project log
 
 ****** DONE And 
 CLOSED: [2019-01-15 Tue 15:34]

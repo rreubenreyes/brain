@@ -1,5 +1,6 @@
-<2019-01-14 Mon 13:09>
+#+STARTUP: indent
 * THE ALGORITHM DESIGN MANUAL - Steven Skiena
+
 ** Chapter 1: Introduction to Algorithm Design
 DISCLAIMER: Longer "pseudocode" examples are written in Python 3 to conform to some kind of syntax highlighting while maintaining the benefit of being readable. Shorter examples are written in TypeScript because that's unfortunately what I am most comfortable in!
 
@@ -83,8 +84,7 @@ As in, all unnecessary details should be gone. Think about the last StackOverflo
 ***** Hunting for counter-examples <<1-counterexamples>>
 Several techniques exist to help you see through an algorithm!
 
-<2019-01-14 Mon 14:37>
-****** Think small 
+****** Think small
 When algorithms fail, there is often a very simple example on which they fail. /Look carefully at several small examples/, because they are easier to verify and reason about.
 
 ****** Think exhaustively
