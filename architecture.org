@@ -259,13 +259,14 @@ Outputs:   out[16]
 Function:  If sel=00 then out=a, if sel=01 then out=b, ... etc. 
 #+END_SRC
 Note what is special about this chip: *It takes 4 possible 16-bit inputs, and turns it into one 16-bit output.* The usefulness of a selection bit is now much more obvious!
+
 *** 1.3 - Implementation 
 Primitive gates are our elementary building blocks. In particular, we will build an entire computing system off of just one primitive gate: =Nand=. The following primitive gates can be build using just Nand: =Nand -> Not -> And -> Or/Xor -> Mux/DMux -> Multi-bit primitives -> Multi-bit Mux -> Multi-way=
 
 *** 1.4 & 1.5 - Perspective and Project 
 We use =Nand= as our single primitive as a means of teaching, though it is not the only way to build computer systems from the ground up. We can study /digital design/ or /logic design/ for more in-depth knowledge.
 
-**** Project 
+**** Project 01
 - OBJECTIVE :: Implement all the logic gates presented in the chapter. The only building blocks that you can use are primitive Nand gates and the composite gates that you will gradually build on top of them.
 - RESOURCES :: Use the hardware simulator provided by /nand2tetris/. All chips should be implemented in HDL, with accompanying tests. Some HDL files or test files are missing, and it is our job to figure out how to re-implement those.
 - CONTRACT :: When loaded into the hardware simulator, our chip design should produce the outputs listed in the supplied =.cmp= file.
@@ -273,5 +274,74 @@ We use =Nand= as our single primitive as a means of teaching, though it is not t
 1. Read Appendix A1 - A6.
 2. Go through the /hardware simulator tutorial/ parts I, II, and III.
 3. Build and simulate all the chips specified in =projects/01=. 
+
+***** Project log
+
+****** DONE And 
+CLOSED: [2019-01-15 Tue 15:34]
+
+******* DONE =builtIn= directory must be relative to a script's root directory or included in the script folder itself 
+CLOSED: [2019-01-15 Tue 15:34]
+
+****** DONE Or 
+CLOSED: [2019-01-15 Tue 15:31]
+****** DONE Xor 
+CLOSED: [2019-01-15 Tue 16:25]
+******* scratch
+#+BEGIN_SRC
+MINTERM a'b + ab' = f(a, b)
+#+END_SRC
+
+****** DONE Mux 
+CLOSED: [2019-01-15 Tue 16:25]
+******* scratch
+#+BEGIN_SRC
+ALIAS sel = s
+MINTERM: f(a, b, s) = a'bs + ab's' + abs' + abs
+DISTRIBUTIVE: 
+  f(a, b, s) = a'bs + a(b's' + bs' + bs)
+             = a'bs + a(b(s + s') + b's')
+             = a'bs + a(b + b's')
+             = a'bs + ab + ab's'
+             = as' + bs
+#+END_SRC
+
+****** TODO DMux 
+****** TODO And16 
+****** TODO Or16 
+****** TODO Mux16 
+****** TODO Mux4Way16 
+****** TODO Mux8Way16 
+****** TODO DMux4Way 
+****** TODO DMux8Way 
+
+*** Appendix A (A1 - A6): Hardware Description Language (HDL) 
+
+**** A.1 - HDL Program Example 
+[[a1-fig-a.1][Figure A.1]] specifies a chip that accepts two three-bit numbers and outputs whether they are equal or not.
+
+#+BEGIN_SRC
+Chip name: Eq3
+Inputs:    a[3], b[3]
+Outputs:   out
+Function:  If a=b then out=1 else 0
+
+CHIP Eq3 {
+  IN a[3], b[3];
+  OUT out;
+  PARTS:
+    Xor(a=a[0], b=b[0], out=c0); 
+    Xor(a=a[1], b=b[1], out=c1);
+    Xor(a=a[2], b=b[2], out=c2);
+    Or(a=c0, b=c1, out=c01); /* check if first bit and second bit are equal */
+    Or(a=c01, b=c2, out=neq); /* check if first, second, third bit are equal */
+    Not(in=neq, out=out);
+}
+#+END_SRC
+/Figure A.1. <<a1-fig-a.1>>/
+
+***** HDL API 
+Ths HDL bundled with the book contains a standard library =builtIn=. Parts can be referenced from this library by using =BUILTIN [built-in component]=.
+
 
 
