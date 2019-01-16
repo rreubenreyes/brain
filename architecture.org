@@ -306,10 +306,25 @@ DISTRIBUTIVE:
              = as' + bs
 #+END_SRC
 
-****** TODO DMux 
-****** TODO And16 
-****** TODO Or16 
-****** TODO Mux16 
+****** DONE DMux 
+CLOSED: [2019-01-15 Tue 20:23]
+******* scratch
+#+BEGIN_SRC
+IN: in, sel
+OUT: a, b
+ALIAS x = in
+ALIAS y = sel
+MINTERMS(a): xy'
+MINTERMS(b): xy
+#+END_SRC
+
+*minterms/maxterms can be isolated by output and then superimposed*
+****** DONE And16 
+CLOSED: [2019-01-15 Tue 20:35]
+****** DONE Or16 
+CLOSED: [2019-01-15 Tue 20:37]
+****** DONE Mux16 
+CLOSED: [2019-01-15 Tue 20:40]
 ****** TODO Mux4Way16 
 ****** TODO Mux8Way16 
 ****** TODO DMux4Way 
@@ -345,3 +360,5 @@ Ths HDL bundled with the book contains a standard library =builtIn=. Parts can b
 
 
 
+
+** TODO Chapter 2: Boolean Arithmetic
