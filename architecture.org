@@ -416,7 +416,8 @@ As we said before, the ALU is just putting a bunch of our previous chips into on
   - Going from our previous example, we can see the trends we've been emphasizing regarding computational chips being simple extensions of basic logic gates. For example:
     - A =HalfAdder= has two outputs, =sum= and =carry=. Its truth table indicates that it can be implemented with just two basic chips: ~sum(a, b) = Xor(a, b)~ and ~carry(a, b) = And(a, b)~.
 **** scratch
-***** TODO HalfAdder
+***** DONE HalfAdder
+CLOSED: [2019-01-17 Thu 09:28]
 +-----+-----+-----+-----+
 |a    |b    |sum  |carry|
 +-----+-----+-----+-----+
@@ -429,7 +430,8 @@ As we said before, the ALU is just putting a bunch of our previous chips into on
 MINTERMS(sum):   a'b + ab'
 MINTERMS(carry): ab
 #+END_SRC
-***** TODO FullAdder
+***** DONE FullAdder
+CLOSED: [2019-01-17 Thu 09:39]
 +-----+-----+-----+-----+-----+
 |a    |b    |c    |sum  |carry|
 +-----+-----+-----+-----+-----+
@@ -449,9 +451,109 @@ MINTERMS(sum):   a'b'c + a'bc' + ab'c' + abc
 MINTERMS(carry): a'bc + ab'c + abc' + abc
   = a(b'c + bc' + bc) + a'bc
   = a(b'c + b) + a'bc
-  = ab'c + b + a'bc
-  = c(ab' + a'b) + b
+  = ab'c + ab + a'bc
+  = ab + ac + bc
 #+END_SRC
-***** TODO Add16 (16-bit adder)
-***** TODO Inc16 (16-bit incrementor)
-***** TODO ALU
+***** DONE Add16 (16-bit adder)
+CLOSED: [2019-01-17 Thu 09:50]
+chain together a bunch of full adders
+
+***** DONE Inc16 (16-bit incrementor)
+CLOSED: [2019-01-17 Thu 09:52]
+***** DONE ALU
+CLOSED: [2019-01-17 Thu 10:16]
+****** Chapter 2.3 - Implementation 
+This ALU can be reduced to implementing simple Boolean operations based on the ALU's six control bits. To start:
+******* DONE implement a 16-bit input according to =nx= and =zx= 
+CLOSED: [2019-01-17 Thu 10:08]
+******* DONE implement a 16-bit input according to =ny= and =zy= 
+CLOSED: [2019-01-17 Thu 10:08]
+******* DONE pipe the results of =nxzx= and =nyzy= into the remaining input pins
+CLOSED: [2019-01-17 Thu 10:16]
+*** Perspective 
+*In any given computer, the overall functionality of the hardware/software platform is delivered jointly by the ALU and OS that runs on top of it.* When designing a new computer system, the decisions made when designing an ALU are a constant cost/performance tradoff.
+
+*The general rule is that hardware implementations of arithmetic/logic are more expensive, but higher performing. Software abstractions are the opposite.* 
+
+The Hack ALU built in this course is designed to build off of previous chapters, and won't necessarily reflect most common ALU design decisions.
+
+** TODO Chapter 3: Sequential Logic
+Chapters 1 and 2 covered /combinational chips/, in that the functions they compute depend solely on their input values. They are great for fast, high-performing requirements, but are unviable if we need our chips to maintain /state/.
+
+/Sequential chips/ are what memory devices are made of; memory chips by definition are stateful. This chapter introduces the concepts of *synchronization*, *clocking*, and *feedback loops*, all of which are used to manipulate bits to be stateful. The name "sequential" comes from the fact that a sequential chip's output depends also on what was input in the /sequence/ before the current one.
+
+We will start by building a very low-level sequential gate called a *flip-flop*. Flip-flops can be thought of as the building blocks for most sequential chips.
+
+*** 3.1 - Background
+Sequential logic chips are based on memory. Memory is based on time; we can remember /now/ something that happened /before/. *To implement memory, we must "implement" time.*
+
+**** The Clock 
+In most computers, the passage of time is represented by a master clock which constantly alternates between two signal states. The output of this clock is fed to every sequential chip throughout an entire computer platform. We call the phases of this clock /low-high/, /0-1/, /tick-tock/, etc. Where ~out(0) = tick~ and ~out(1) = tock~.
+
+**** Flip-Flops 
+Also called *DFFs* (/data flip-flops/). A DFF's interface consists of a single-bit data input and a single-bit data output, along with a clock input that is continuously changing. Taken together, the =data= input and =clock= input allow the DFF to implement some function ~out(t) = in(t-1)~. *A DFF simply outputs the input from the previous time cycle.*
+
+DFFs are what we use as an elementary /stateful unit/. A very common example is a /register/.
+
+**** Registers 
+A *register* is a storage device that can "remember" a value over time, implementing the storage behavior ~out(t) = out(t-1)~. 
+
+This means that *a register can be implemented from DFF simply by feeding the output of the DFF back into the input*. In order for a register to be able to handle both ~out = in(t-1)~ (write functionality) and ~out = out(t-1)~ (read functionality), we must use a conditional directive. Fortunately we can do this with a multiplexor, whose sole purpose is to select read/write based on a =load= variable.
+
+Like in many of our low-level abstractions, once we've figured this out, we can make registers of any size, or /width/. The multi-bit contents of a multi-bit register are sometimes called /words/.
+
+**** Memories 
+Once we have the ability to represent words, we can proceed to build /memory banks/ of arbitrary length. In order to build *RAM*, for example, we can simply stack together a whole bunch of registers.
+
+***** Random-access memory (RAM)
+The distinguishing property of RAM comes from the "random" part. It should be able to access randomly chosen words; *any word in the memory, /irrespective of its physical location/, should have the same access speed as any other word*. This requirement can be satisfied as follows:
+
+1. We assign each word in the /n/-register RAM a unique /address/.
+2. Alongside the /n/-register RAM, we build a gate logic design that, given an address =j=, can select the individual register with that same address.
+
+****** RAM architecture
+A classical RAM device accepts three inputs: *data*, *address*, and *load bit*. The purpose of each of these pins:
+
+- The /address/ specifies which RAM register should be accessed in the current time step.
+- The /load bit/ specifies whether to *read* (i.e. access ~out = out(t - 1)~) or *write* (i.e. access ~out = in(t - 1)~).
+  - In the case of a read operation, the RAM's output immediately emits the value of the selected register at =&j=.
+  - In the case of a write operation, the register at =&j= saves the data provided by the data bit in the current time step.
+- The /data/ input specifies what should be written to a memory address in the case of a write operation.
+
+The basic design paramters of a RAM device are its data /width/ (register capacity/max. word size) and its /size/ (total number of words in memory). For reference, modrern computers typically utilize 32-bit- or 64-bit-wide RAMs whose sizes are up to billions of words.
+
+**** Counters 
+A /counter/ is a sequential chip whose state is an integer number that increments every time unit. Its characteristic is ~out(t) = out(t - 1) + c~, where =c= is the amount by which to increment the count.
+
+Implementation of a counter is simple; it requires only one register in series and positive feedback with an incrementor. The load bit of a counter is usually not utilized unless we need to manually write a value to the counter's memory, or otherwise alter it; any combinatorial chip can be used to affect the load bit of this counter.
+
+**** Overview
+All of the chips we've discussed so far are /sequential/. It turns out that all sequential chips employ DFF gates at some level of the abstraction. 
+
+Technically speaking, this is done by forming feedback loops in combination with a selection directive, typically a multiplexor.
+
+*Combinatorial chips change their outputs with their inputs*, meaning they are zero-order with respect to time--~f(...in) = out(...in)~.
+
+*Sequential chips change their outputs with their inputs /and/ with respect to time*--~f(t, ...in) = out(t, ...in)~. The term "sequential" also implies that they may only change w.r.t time, at most, every one clock cycle.
+
+***** Caveat 
+Sequential chips like this are modeled /discretely/ (as in discrete math). If measured and modeled in continuous time, their outputs would actually be incredibly unstable, thus we choose to implement chips which are deterministic to exactly one clock cycle.
+
+The advantage of this is that we get to model /every/ part of the computer architecture in a discrete time model, with the same deterministic properties applying for every part of our system. This proves crucial in later tasks like scheduling, context, and parallel computation (not threading!).
+
+Low-level "race conditions" like in inputting data to an ALU (combinatorial) might pose problems if we didn't use sequential chips in some form or another. However, because a computer architecture is absolutely dependent on sequential devices, we don't have to care about these race conditions. All we need to do is design the clock cycle to be deterministic, in that *a clock cycle is slightly longer than the time it takes for a bit to travel the longest distance from one chip to another*, and only dealing with changes in state at the top of every clock cycle
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
