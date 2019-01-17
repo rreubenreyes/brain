@@ -1,4 +1,3 @@
-#+STARTUP: indent
 * THE ELEMENTS OF COMPUTING SYSTEMS - Noam Nisan and Shimon Schocken
 *** Key Sections 
 
@@ -269,21 +268,24 @@ Primitive gates are our elementary building blocks. In particular, we will build
 We use =Nand= as our single primitive as a means of teaching, though it is not the only way to build computer systems from the ground up. We can study /digital design/ or /logic design/ for more in-depth knowledge.
 
 **** Project 01 <<nand-project-01>>
+([[file:~/git-repos/nand2tetris/01][completed project files)]]
+
 - OBJECTIVE :: Implement all the logic gates presented in the chapter. The only building blocks that you can use are primitive Nand gates and the composite gates that you will gradually build on top of them.
 - RESOURCES :: Use the hardware simulator provided by /nand2tetris/. All chips should be implemented in HDL, with accompanying tests. Some HDL files or test files are missing, and it is our job to figure out how to re-implement those.
 - CONTRACT :: When loaded into the hardware simulator, our chip design should produce the outputs listed in the supplied =.cmp= file.
 - STEPS ::
-1. Read Appendix A1 - A6.
-2. Go through the /hardware simulator tutorial/ parts I, II, and III.
-3. Build and simulate all the chips specified in =projects/01=. 
-
-***** TODO Project log
+- Read Appendix A1 - A6.
+- Go through the /hardware simulator tutorial/ parts I, II, and III.
+- Build and simulate all the chips specified in =projects/01=.
+ 
+<2019-01-16 Wed>
+***** DONE Project log
+CLOSED: [2019-01-16 Wed 08:52]
 
 ****** DONE And 
 CLOSED: [2019-01-15 Tue 15:34]
 
-******* DONE =builtIn= directory must be relative to a script's root directory or included in the script folder itself 
-CLOSED: [2019-01-15 Tue 15:34]
+******* =builtIn= directory must be relative to a script's root directory or included in the script folder itself 
 
 ****** DONE Or 
 CLOSED: [2019-01-15 Tue 15:31]
@@ -327,10 +329,18 @@ CLOSED: [2019-01-15 Tue 20:35]
 CLOSED: [2019-01-15 Tue 20:37]
 ****** DONE Mux16 
 CLOSED: [2019-01-15 Tue 20:40]
-****** TODO Mux4Way16 
-****** TODO Mux8Way16 
-****** TODO DMux4Way 
-****** TODO DMux8Way 
+****** DONE Mux4Way16 
+CLOSED: [2019-01-16 Wed 08:30]
+
+******* scratch
+*logic design involves a lot of looking for bitwise patterns and applying gradual abstractions*
+
+****** DONE Mux8Way16 
+CLOSED: [2019-01-16 Wed 08:36]
+****** DONE DMux4Way 
+CLOSED: [2019-01-16 Wed 08:46]
+****** DONE DMux8Way 
+CLOSED: [2019-01-16 Wed 08:52]
 
 *** Appendix A (A1 - A6): Hardware Description Language (HDL) 
 
@@ -363,4 +373,105 @@ Ths HDL bundled with the book contains a standard library =builtIn=. Parts can b
 
 
 
-** TODO Chapter 2: Boolean Arithmetic
+** Chapter 2: Boolean Arithmetic
+[2019-01-16 Wed 18:25]
+
+In this chapter we build gate logic designs that represent numbers /and perform arithmetic operations on them/. We will go from all the basic gates we did in chapter 1, all the way to an *Arithmetic Logic Unit (ALU)* at the end of the chapter! In the following chapters we will build up to a fully functioning CPU.
+
+*** Coursera Unit 2.1: Binary Numbers 
+In previous chapters, we've worked only with turning boolean values into more boolean values. However, binary can be used to represent "normal" arithmetic just as in decimal or other number systems. 
+
+*** Coursera Unit 2.2: Binary Addition 
+(this is fundamental and for the most part i know all of this)
+
+*** Coursera Unit 2.3: Negative Numbers 
+We know that an =n=-digit /unsigned/ binary number can represent =2^n= values. For example, a 3-bit bus can have 8 (=2^3=) possible values. 
+
+That happens to be the same for /signed/ binary numbers. All we have to do is look at the leftmost bit; if it's =1=, then the number is negative, else it's positive.
+
+**** 2's complement - Calculating signed binary numbers 
+
+***** Negation 
+An =n=-bit negative number =-x= can be thought of as =2^n - x=.
+
+***** Bitwise negation 
+To negate a number in binary, we use *2's complement*. This is done by taking the /1's complement/ (flip all the bits) and adding 1:
+
+#+BEGIN_SRC
+3 = 0b0011
+-3 = ^0b0011
+   = 0b1100 + 1
+   = 0b1101
+#+END_SRC
+
+*** Coursera Unit 2.4: ALU 
+The ALU is the brain-child of John Von Neumann. In Von Neumann Architecture,
+
+=[INPUT] -> [MEMORY] <-> [CPU: {ALU | CONTROL}] -> [OUTPUT]=
+
+the ALU exists within the CPU and is a central part in communicating with a computer's memory and output.
+
+**** ALU specification 
+#+BEGIN_SRC
+Chip name: ALU
+Inputs:    in1, in2, f (where f is one of a family of pre-defined logical functions)
+Outputs:   f(in1, in2)
+Function:  Dependent on f
+#+END_SRC
+
+**** The Hack ALU 
+We will be building a Hack Computer in this course, so let's build a Hack ALU!
+
+Hack ALU specification:
+#+BEGIN_SRC
+Chip name: HackALU
+Inputs:    x[16], y[16], zx, nx, zy, ny, f, no
+Outputs:   out[16], zr, ng
+Function:  Many pre-defined functions defined by control bits
+#+END_SRC
+:w
+
+The six control bits =zx, nx, zy, ny, f, no= define a /directive/ for the Hack ALU. It will compute many functions based on their input; for example, =000111= tells the ALU to compute =y - x=.
+
+**** Hack ALU control bits 
+- =zx= - =if zx then x\=0=
+- =nx= - =if nx then x\=!x=
+- =zy= - =if zy then y\=0=
+- =ny= - =if ny then y\=!y=
+- =f= - =if f then out\=x+y else out\=x&y=
+- =no= - ~if no then out\=!out~
+
+The six control bits combine a /superposition/ of each of the functions specified by each bit. That is: =F(x, y) = z(x) + n(x) + z(y) + n(y) + f(x, y)=. This means that *the Hack ALU can compute any of 64 different function combinations.*
+
+***** Example: Compute !x 
+- IN :: ~x=0b1100~ ~y=1011~
+- CONTROL BITS :: =001101=
+                  
+#+BEGIN_SRC
+n(x) = 0: x = 1100
+z(x) = 0: x = 1100
+n(y) = 1: y = 0000
+z(y) = 1: y = 1111
+f(x, y) = 0:
+  x & y = 1100
+no = 1: out = 0011 === !x
+#+END_SRC 
+
+***** Caveat 
+The ALU is just an implementation /of an abstraction/ of the previous basic logic gates we've created before. There is nothing too magical about it, other than the fact that somebody decided to combine a bunch of (very useful) bitwise functions into one unit.
+
+**** Output control bits 
+- =zr= - ~if out=0 then zr=1 else 0~
+- =ng= - ~if out<0 then ng=1 else 0~
+
+***** Caveat 
+This becomes important a bit later down the line when we build a CPU!
+
+**** Perspective 
+The Hack ALU is ideal for teaching purposes because of its simplicity, elegance, and ease of implementation. The bitwise functions it covers are fairly straightforward; they are visibly based off of early abstractions.
+
+As we said before, the ALU is just putting a bunch of our previous chips into one chip!
+
+
+
+
