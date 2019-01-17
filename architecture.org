@@ -4,6 +4,7 @@
 [[1-world-below][- The world below as we know it]]
 [[1-hdl][- HDL]]
 [[nand-project-01][- Project 01]]
+[[nand-project-01][- Project 02]]
 
 ** Introduction 
 This book teaches three things:
@@ -471,6 +472,50 @@ This becomes important a bit later down the line when we build a CPU!
 The Hack ALU is ideal for teaching purposes because of its simplicity, elegance, and ease of implementation. The bitwise functions it covers are fairly straightforward; they are visibly based off of early abstractions.
 
 As we said before, the ALU is just putting a bunch of our previous chips into one chip!
+
+*** Project 02 <<nand-project-02>>
+- GIVEN :: All the chips built in Project 01!
+- OBJECTIVE :: Build the a =HalfAdder=, =FullAdder=, =Add16=. =Inc16=, and =ALU=.
+  - Note that these chips are all computational chips, going from simple to more complex.
+  - Going from our previous example, we can see the trends we've been emphasizing regarding computational chips being simple extensions of basic logic gates. For example:
+    - A =HalfAdder= has two outputs, =sum= and =carry=. Its truth table indicates that it can be implemented with just two basic chips: ~sum(a, b) = Xor(a, b)~ and ~carry(a, b) = And(a, b)~.
+
+**** scratch 
+***** HalfAdder 
++-----+-----+-----+-----+
+|a    |b    |sum  |carry|
++-----+-----+-----+-----+
+|0    |0    |0    |0    |
+|0    |1    |1    |0    |
+|1    |0    |1    |0    |
+|1    |1    |0    |1    |
++-----+-----+-----+-----+
+#+BEGIN_SRC
+MINTERMS(sum):   a'b + ab'
+MINTERMS(carry): ab
+#+END_SRC
+ 
+***** FullAdder 
++-----+-----+-----+-----+-----+
+|a    |b    |c    |sum  |carry|
++-----+-----+-----+-----+-----+
+|0    |0    |0    |0    |0    |
+|0    |0    |1    |1    |0    |
+|0    |1    |0    |1    |0    |
+|0    |1    |1    |0    |1    |
+|1    |0    |0    |1    |0    |
+|1    |0    |1    |0    |1    |
+|1    |1    |0    |0    |1    |
+|1    |1    |1    |1    |1    |
++-----+-----+-----+-----+-----+
+#+BEGIN_SRC
+MINTERMS(sum):   a'b'c + a'bc' + ab'c' + abc
+MINTERMS(carry): a'bc + ab'c + abc' + abc
+#+END_SRC
+
+***** Add16 (16-bit adder)
+***** Inc16 (16-bit incrementor)
+***** ALU 
 
 
 
