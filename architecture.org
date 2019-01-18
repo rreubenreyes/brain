@@ -40,7 +40,7 @@ An intimate understanding of the world below is one of the things that separates
 *** Abstractions
 It is through building abstractions from the bottom up that we free up the mental capacity to actually go so far up.
 
-We built the NAND gate, and we abstracted it away from our thoughts so that we could focus on other thing. This led to AND, which leads to OR, which leads to XOR, which leads to the adder... and so on. *A good abstraction focuses only on "What is this thing doing?" rather than "How does it do it?".
+We built the NAND gate, and we abstracted it away from our thoughts so that we could focus on other thing. This led to AND, which leads to OR, which leads to XOR, which leads to the adder... and so on. A good abstraction focuses only on "What is this thing doing?" rather than "How does it do it?".
 *** The World Below
 <<1-world-below>>
 As we dive into the lands below, we'll find out more about the following...
@@ -477,7 +477,7 @@ CLOSED: [2019-01-17 Thu 10:16]
 *The general rule is that hardware implementations of arithmetic/logic are more expensive, but higher performing. Software abstractions are the opposite.*
 
 The Hack ALU built in this course is designed to build off of previous chapters, and won't necessarily reflect most common ALU design decisions.
-** TODO Chapter 3: Sequential Logic
+** Chapter 3: Sequential Logic
 Chapters 1 and 2 covered /combinational chips/, in that the functions they compute depend solely on their input values. They are great for fast, high-performing requirements, but are unviable if we need our chips to maintain /state/.
 
 /Sequential chips/ are what memory devices are made of; memory chips by definition are stateful. This chapter introduces the concepts of *synchronization*, *clocking*, and *feedback loops*, all of which are used to manipulate bits to be stateful. The name "sequential" comes from the fact that a sequential chip's output depends also on what was input in the /sequence/ before the current one.
@@ -631,11 +631,64 @@ Other than these low-level details, everything that is considered an abstraction
 
 **** scratch 
 
-***** TODO Bit (1-bit register) 
-***** TODO Register (n-bit register)
-***** TODO RAM8
-***** TODO RAM64
-***** TODO PC
-***** TODO RAM512
-***** TODO RAM4K
-***** TODO RAM16K
+***** DONE Bit (1-bit register) 
+- State "DONE"       from "TODO"       [2019-01-18 Fri 11:06]
+***** DONE Register (n-bit register)
+- State "DONE"       from "TODO"       [2019-01-18 Fri 11:10]
+***** DONE RAM8
+- State "DONE"       from "TODO"       [2019-01-18 Fri 11:25]
+***** DONE RAM64
+- State "DONE"       from "TODO"       [2019-01-18 Fri 11:38]
+***** DONE PC
+- State "DONE"       from "TODO"       [2019-01-18 Fri 12:02]
+conditions in low-level code often imply hierarchy
+
+hierarchy in HDL starts from the lowest conditional clause and travels up
+***** DONE RAM512
+- State "DONE"       from "TODO"       [2019-01-18 Fri 12:10]
+***** DONE RAM4K
+- State "DONE"       from "TODO"       [2019-01-18 Fri 12:20]
+***** DONE RAM16K
+
+- State "DONE"       from "TODO"       [2019-01-18 Fri 12:20]
+*** Appendix A (A7) - Sequential Chips 
+**** A.7.1 - The Clock 
+The simulator models the progression of time by supporting two operations called /tick/ and /tock/. They simulate a series of /time units/. Each /tick/ ends the first phase of a time unit and starts the second phase, while /tock/ ends the second phase of the current time unit and starts the first phase of the first.
+
+During all /ticks/, the inputs of each sequential chip in the architecture are read and affect the chip's internal state.
+
+During all /tocks/, the outputs of the chip are set to new values. The values of the output pins, regardless of a read/write operation, are deterministic to the end of each /tock/.
+
+**** A.7.2 - Clocked Chips and Pins 
+We can specify whether a pin should be clocked or not by =CLOCKED pin=. A =CLOCKED= pin will behave sequentially.
+
+***** Caveat 
+Any high-order pin =P= may have some lower-level pin implementation =Q=, that is =P= is an abstraction over =Q=. /if =Q= or any other child of =P= is clocked, then =P= is also clocked./
+** Chapter 4: Machine Language 
+A computer can be described /constructively/, by layout out its hardware platform and explaining how it's built from low-level chips.
+
+It can also be described /abstractly/, by specifying its higher-level machine language capabilities. This is where the fun part starts. By focusing on low-level machine language code, we can understand how to manipulate the computer to run /any/ machine language program and complete our general-purpose build.
+
+*Machine language* is the first line in the computer enterprise where hardware and software meet. It is a formalism designed to code low-level programs as a series of machine instructions. Because it is the first instance where abstract code is transformed into actual physical activity, *machine language can be thought of as both a programming tool and an integral part of computer hardware*.
+*** 4.1 - Background 
+**** 4.1.1 - Machines 
+A /machine language/ can be viewed as a formalism designed to manipulate /memory/ using a /processor/ and a set of /registers/.
+
+***** Memory  
+The term /memory/ refers loosely to the collection of hardware devices that store data and instructions in a computer.
+
+From a programmer's standpoint, all memories are identical. All have some word/location /width/ and an /address/. We're probably used to accessing memory in this way via =Memory[address]=.
+
+***** Processor
+The processor is normally called the /central processing unit (CPU)/. We have implemented the CPU in the past by designing an ALU and its control outputs. CPUs are capable of a fixed set of elementary operations, namely those defined by the ALU.
+
+The difference between the ALU and the CPU is that the CPU gets its inputs either from memory or from user input, and can also write to memory or some other output. Thus, it interfaces with those two parts in Von Neumann's architecture rather than being isolated.
+
+***** Registers
+Because memory access becomes gradually slower as it gets more nested (need to mux/demux several times the more nested a bus gets), we often want to keep some high-speed, "lower-order" local memory close to the processor. This concept should be familiar: Oftentimes it is implemented as a *stack* or *heap*, depending on the higher-level language implementation.
+
+**** 5.1.2 - Languages 
+A machine language program is a series of coded instructions.
+
+
+
