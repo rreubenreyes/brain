@@ -1,8 +1,15 @@
 # most personal files will be ignored for the sake of not actually flooding my gh log
 # when i'm not doing anything productive related to SE/CS/web
 journal.org
-.#journal.org
+work.org
+projects.org
+training.org
 _inbox.org
+
+.#journal.org
 .#inbox.org
 .#architecture.org
 .#dsa.org
+.#projects.org
+.#training.org
+.#work.org
