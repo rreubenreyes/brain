@@ -1,5 +1,10 @@
-#+STARTUP: indent
-* THE ALGORITHM DESIGN MANUAL - Steven Skiena
+* The Algorithm Design Manual
+:PROPERTIES:
+:Title: The Algorithm Design Manual
+:Author: Steven Skiena
+:CATEGORY: skiena
+:END:
+
 
 ** Chapter 1: Introduction to Algorithm Design
 DISCLAIMER: Longer "pseudocode" examples are written in Python 3 to conform to some kind of syntax highlighting while maintaining the benefit of being readable. Shorter examples are written in TypeScript because that's unfortunately what I am most comfortable in!

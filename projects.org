@@ -1,0 +1,16 @@
+* Mana
+:PROPERTIES:
+:CATEGORY: @mana
+:END:
+
+** Purpose
+Crafting game built around the concept of building a computer system, only you're actually building a magic system.
+
+** Stories 
+:PROPERTIES:
+:CATEGORY: @mana--stories
+:END:
+*** I will be able to craft a complete magic system starting from the manipulation of /2/? elementary particles. 
+**** Tasks
+***** TODO get familiar with computer architecture
+

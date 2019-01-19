@@ -1,4 +1,9 @@
-* THE ELEMENTS OF COMPUTING SYSTEMS - Noam Nisan and Shimon Schocken
+* The Elements of Computing Systems
+:PROPERTIES:
+:Title: The Elements of Computing Systems
+:Author: Noam Nisan, Shimon Schocken
+:CATEGORY: nand2tetris
+:END:
 *** Key Sections
 
 [[1-world-below][- The world below as we know it]]
@@ -670,6 +675,7 @@ A computer can be described /constructively/, by layout out its hardware platfor
 It can also be described /abstractly/, by specifying its higher-level machine language capabilities. This is where the fun part starts. By focusing on low-level machine language code, we can understand how to manipulate the computer to run /any/ machine language program and complete our general-purpose build.
 
 *Machine language* is the first line in the computer enterprise where hardware and software meet. It is a formalism designed to code low-level programs as a series of machine instructions. Because it is the first instance where abstract code is transformed into actual physical activity, *machine language can be thought of as both a programming tool and an integral part of computer hardware*.
+
 *** 4.1 - Background 
 **** 4.1.1 - Machines 
 A /machine language/ can be viewed as a formalism designed to manipulate /memory/ using a /processor/ and a set of /registers/.
@@ -687,8 +693,129 @@ The difference between the ALU and the CPU is that the CPU gets its inputs eithe
 ***** Registers
 Because memory access becomes gradually slower as it gets more nested (need to mux/demux several times the more nested a bus gets), we often want to keep some high-speed, "lower-order" local memory close to the processor. This concept should be familiar: Oftentimes it is implemented as a *stack* or *heap*, depending on the higher-level language implementation.
 
-**** 5.1.2 - Languages 
-A machine language program is a series of coded instructions.
+**** 4.1.2 - Languages 
+A machine language program is a series of coded instructions. For example, a typical instruction for a 16-bit machine might be: =1010001100011001=.
+
+What does this mean? We don't know, at least without context! One possible implementation:
+
+Each instruction might consist of four bytes, each of which contains some meaningful information. The first byte =1010= might be a CPU operation, and the remaining bytes may represent operands. Imagine that this is Lisp:
+
+#+BEGIN_SRC lisp
+(+ 3 1 9); +=1010, 3=0011, 1=0001, 9=1001 
+#+END_SRC
+
+We might end up compiling a Lisp command such as the one above down to machine code just as the 16-bit instruction says. The thing is, *the implementation of machine code is 100% dependent on the hardware architecture beneath it*.
+
+***** Assembly
+This is precisely the reason we prefer to think one step above machine language, with *assembly language*. We can more closely understand machine code if we abstract it by one level. For example, the instruction =1010001100011001= can be thought of in (Hack) ASM as:
+
+#+BEGIN_SRC asm
+ADD R3, R1, R9
+#+END_SRC
+
+The code above is much more easily understood now. It turns out we were right about the instruction =1010= representing =ADD=, however =3=, =1=, and =9= turned out to be /register addresses/, not word literals. In any case, ASM is significantly easier to work with than machine code and we will be relying on it to build the rest of our software implementation.
+
+**** 4.1.3 - Commands 
+***** Arithmetic and logic operations 
+Like we've learned so far, every computer is required to perform basic arithmetic operations like addition and subtraction (multiplication and division are just repeated addition and subtraction) as well as Boolean logic operations. Some Hack ASM syntax:
+#+BEGIN_SRC asm
+ADD R2, R1, R3 ;; R2<-R1+R3, or "value at R2 gets value at R1 plus value at R3"
+ADD R2, R1, foo ;; approximate C: int* r2 = &r2_addr; r2 = r1 + foo
+AND R1, R1, R2 ;; approximate C: uint_8t r1 = r1_value; r1 = r1 & r2
+#+END_SRC
+
+***** Memory access
+Most assembly commands that actually manipulate memory are in the form of =LOAD= and =STR= (store) commands. In order to actually access memory using those commands, we have different /addressing modes/. They are not necessarily globally adopted. Some common ones:
+
+****** Immediate addressing
+Immediate addressing is simply piping a literal memory address into our code. =LOAD R1, 67= writes the value at memory address =67= to register =R1=.
+
+****** Direct addressing 
+When we refer to a memory address by an alias, we use direct addressing. Say we defined =mem[67]= to have an alias =foo=. The resulting code: =LOAD R1, foo=
+
+****** Indirect addressing 
+This is how we handle pointers. Let's take this typical line of C code:
+#+BEGIN_SRC c
+int x;
+int k = 6; // size of array
+int* foo = malloc(k * sizeof(int));
+
+int j = 4; // index of array value we wish to access
+x = *(foo + j); // x gets value of foo[j]
+#+END_SRC
+
+In assembly:
+#+BEGIN_SRC asm
+;; let's just say we've predefined our memory allocation and array indices
+ADD R1, foo, j ;; R1 gets foo+j
+LOAD* R2, R1 ;; write pointer-to-R1 to R2
+STR R2, x ;; alias R2 to x
+#+END_SRC
+
+****** Flow of control 
+AKA /jump/ and /conditional/ directives.
+
+******* Unconditional jumps
+Defined by =JMP=. Usage: =JMP R1=. Simply specify instruction register to jump to. 
+
+******* Conditional jumps 
+Defined by several conditional directives, operating mostly on comparison-based clauses.
+
+*** 4.2 - Hack Machine Language Specification
+**** 4.2.1 - Overview
+The Hack computer is a von Neumann platform. It is a 16-bit machine consisting of a CPU, two separate memory modules serving as /instruction memory/ and /data memory/, and two memory-mapped I/O devices: a screen and a keyboard.
+
+***** Memory Address Spaces
+We define two distrinct memory regions: an *instruction memory* and a *data memory*. Both are 16-bits wide and have a 15-bit address space, meaning that the maximum addressable size of each memory is 32k 16-bit words.
+
+/Instruction memory/ holds programs that will be directly executed by the computer. It is read-only (by the computer), and programs are loaded into it externally (aka physically).
+
+/Data memory/ is the regular storage unit of the computer.
+
+***** Registers 
+We have two 16-bit registers called =D= and =A=. They can be manipulated explicitly by instructions like ~A=D-1~ or ~D=!A~, both of which are either arithmetic or bitwise logic operations.
+
+=D= is used solely to store data values, while =A= is both a data register /and/ an address register, which means that the contents of =A= can be interpted either as purely a data value, equivalent to an address in data memory, or equivalent to an address in instruction memory.
+
+****** Using =A= as a data pointer 
+Hack syntax mandates that memory access instructions operate on an implicit memory location named =M=, for example, ~D=M+1~. =M= /always/ refers to the memory word whose address is the current value of the =A= register. Thus, if we want =M= to point to memory address =&412=, we must set =A= to the literal value =412=.
+
+****** Using =A= as an instruction pointer
+In order to effect flow of control, we can also use =A= to operate on instruction memory. A =JMP= instruction in Hack does not specify a particular address. Instead, jump instructions /also/ implicitly refer to the literal value of =A= to identify which instruction pointer to jump to.
+
+****** A-instructions and C-instructions 
+Any memory operations in most machine languages, Hack included, requires two operations: One to fix the address we want to operate on, and another to actually do that operation. In Hack, we have /address instructions/ called *A-instructions*, and /compute instructions/ called *C-instructions*, which do exactly that.
+
+**** 4.2.2 - The A-instruction 
+*The A-instruction is used to set the =A= register to a 15-bit value.*
+
+#+BEGIN_SRC
+A-instruction:  @value  // where `value` is a non-negative decimal number
+                        // or a symbol referring to such number
+#+END_SRC
+
+This instruction causes the computer to store the specified value in the =A= register--=@5=, for example, stores the literal word =5= in the =A= register.
+
+The =A= instruction is used for three different purposes:
+
+1. It provides the only way to enter a constant into the computer under program control.
+2. It sets the stage for a subsequent =C= instruction designed to manipulate a certain data memory location.
+3. It sets the stage for a subsequent =C= instruction that specifies a jump.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
