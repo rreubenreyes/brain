@@ -786,9 +786,8 @@ In order to effect flow of control, we can also use =A= to operate on instructio
 ****** A-instructions and C-instructions 
 Any memory operations in most machine languages, Hack included, requires two operations: One to fix the address we want to operate on, and another to actually do that operation. In Hack, we have /address instructions/ called *A-instructions*, and /compute instructions/ called *C-instructions*, which do exactly that.
 
-**** 4.2.2 - The A-instruction 
+**** 4.2.2 - The A-Instruction 
 *The A-instruction is used to set the =A= register to a 15-bit value.*
-
 #+BEGIN_SRC
 A-instruction:  @value  // where `value` is a non-negative decimal number
                         // or a symbol referring to such number
@@ -802,8 +801,49 @@ The =A= instruction is used for three different purposes:
 2. It sets the stage for a subsequent =C= instruction designed to manipulate a certain data memory location.
 3. It sets the stage for a subsequent =C= instruction that specifies a jump.
 
+To see =A= instructions in action, here's some C code compared with Hack machine language!
+#+BEGIN_SRC c
+// increments from 1 to 100
+int i = 1;
+int sum = 0;
 
+while (i <= 100) {
+  sum += i;
+  i++;
+}
+#+END_SRC
 
+#+BEGIN_SRC nand2tetris
+  @i // `i` refers to some address
+  M=1
+  @sum // `sum` refers to some address
+  M=0 ; sum=0
+(LOOP)
+  @ni
+  D=m // D=i
+  @100
+  D=D-A // D=i-100
+  @END
+  D;JGT // if (i-100)>0 goto END
+  @i
+  D=M
+  @sum
+  M=D+M // sum=sum+i
+  @i
+  M=M+1 // i=i+1
+  @LOOP
+  0;JMP // goto LOOP
+(END)
+  @END
+  0;JMP // infinite loop, standard in hack to "terminate" programs
+#+END_SRC
+
+Some Hack conventions:
+
+- We use uppercase to represent labels and lowercase to represent variables.
+- All variables resolve to physical memory addresses.
+
+**** 4.2.3 - The C-Instruction 
 
 
 

@@ -2,14 +2,24 @@
 # when i'm not doing anything productive related to SE/CS/web
 journal.org
 work.org
-projects.org
+someday.org
+tickler.org
+gtd.org
 training.org
 _inbox.org
 
 .#journal.org
-.#inbox.org
+.#_inbox.org
 .#architecture.org
 .#dsa.org
-.#projects.org
-.#training.org
-.#work.org
+.#gtd.org
+.#tickler.org
+.#someday.org
+
+.#journal.org_archive
+.#_inbox.org_archive
+.#architecture.org_archive
+.#dsa.org_archive
+.#gtd.org_archive
+.#tickler.org_archive
+.#someday.org_archive

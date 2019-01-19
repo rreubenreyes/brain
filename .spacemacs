@@ -328,11 +328,14 @@ before packages are loaded. If you are unsure, you should try in setting them in
 
   ;; custom org-todo keywords
   (setq org-todo-keywords
-        '((sequence "TODO(t)" "WAIT(w@/!)" "MAYBE(m@/!)" "DONE(d!)" "CANCELED(c@)" "(x)")))
+        '((sequence "PROJECT(p)" "STORY(s)" "TODO(t)" "WAIT(w@/!)" "DOING(o@)" "MAYBE(m@/!)" "(x)" "|" "DONE(d!)" "CANCELED(c@)" )))
   (setq org-todo-keyword-faces '(
-                                 ("TODO" . org-warning)
+                                 ("PROJECT" . (:background "#111" :foreground "#D54C46"))
+                                 ("STORY" . (:background "#111" :foreground "#7FDBCA"))
+                                 ("TODO" . "#B183D9")
+                                 ("DOING" . "#9AE0C8")
                                  ("MAYBE" . "#444444")
-                                 ("WAIT" . "#C7BB74")
+                                 ("WAIT" . "#B183D9")
                                ))
 )
 
@@ -368,7 +371,62 @@ you should place your code here."
                                               (clipboard-kill-region (point-min) (point-max)))
                                             (message filename))))
   )
+  ;; GTD: capture items to inbox or tickler
+  (setq org-capture-templates '(("t" "Todo [inbox]" entry
+                                 (file+headline "~/Dropbox/org/_inbox.org" "Tasks")
+                                 "* TODO %i%?")
+                                ("T" "Tickler" entry
+                                 (file+headline "~/Dropbox/org/tickler.org" "Tickler")
+                                 "* %i%? \n %U")))
 
+  ;; GTD: refile targets to other project files
+  (setq org-refile-targets '(("~/Dropbox/org/gtd.org" :maxlevel . 3)
+                             ("~/Dropbox/org/someday.org" :level . 1)
+                             ("~/Dropbox/org/tickler.org" :maxlevel . 2)))
+
+  ;; GTD: filter agenda view by keyword
+  (setq org-agenda-custom-commands 
+        '(()
+          ("d" "[D]ev projects" tags-todo "@dev"
+           ((org-agenda-overriding-header "[D]ev projects")
+            (org-agenda-skip-function #'my-org-agenda-skip-all-siblings-but-first)))
+          ("e" "[E]mail" tags-todo "@email"
+           ((org-agenda-overriding-header "[E]mail")
+            (org-agenda-skip-function #'my-org-agenda-skip-all-siblings-but-first)))
+          ("h" "[H]ome" tags-todo "@home"
+           ((org-agenda-overriding-header "[H]ome")
+            (org-agenda-skip-function #'my-org-agenda-skip-all-siblings-but-first)))
+          ("i" "M[i]sc." tags-todo "@misc"
+           ((org-agenda-overriding-header "M[i]sc.")
+            (org-agenda-skip-function #'my-org-agenda-skip-all-siblings-but-first)))
+          ("o" "[O]ffice" tags-todo "@office"
+           ((org-agenda-overriding-header "[O]ffice")
+            (org-agenda-skip-function #'my-org-agenda-skip-all-siblings-but-first)))
+          ("m" "[M]ary" tags-todo "@mary"
+           ((org-agenda-overriding-header "[M]ary")
+            (org-agenda-skip-function #'my-org-agenda-skip-all-siblings-but-first)))
+          ("r" "E[r]rands" tags-todo "@errands"
+           ((org-agenda-overriding-header "E[r]rands")
+            (org-agenda-skip-function #'my-org-agenda-skip-all-siblings-but-first)))
+          )
+  )
+
+  ;; GTD: only show first todo
+  (defun my-org-agenda-skip-all-siblings-but-first ()
+    "Skip all but the first non-done entry."
+    (let (should-skip-entry)
+      (unless (org-current-is-todo)
+        (setq should-skip-entry t))
+      (save-excursion
+        (while (and (not should-skip-entry) (org-goto-sibling t))
+          (when (org-current-is-todo)
+            (setq should-skip-entry t))))
+      (when should-skip-entry
+        (or (outline-next-heading)
+            (goto-char (point-max))))))
+
+  (defun org-current-is-todo ()
+    (string= "TODO" (org-get-todo-state)))
 ;; Do not write anything past this comment. This is where Emacs will
 ;; auto-generate custom variable definitions.
 (custom-set-variables
@@ -378,7 +436,8 @@ you should place your code here."
  ;; If there is more than one, they won't work right.
  '(org-agenda-files
    (quote
-    ("~/Dropbox/org/work.org" "~/Dropbox/org/training.org" "~/Dropbox/org/projects.org" "~/Dropbox/org/_inbox.org")))
+    ("~/Dropbox/org/gtd.org" "~/Dropbox/org/tickler.org" "~/Dropbox/org/_inbox.org")))
+ '(org-agenda-todo-list-sublevels t)
  '(package-selected-packages
    (quote
     (doom-nord-theme doom-sourcerer-theme doom-dracula-theme nand2tetris doom-themes night-owl-theme-theme zenburn-theme zen-and-art-theme white-sand-theme web-beautify underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme toxi-theme tide typescript-mode flycheck tao-theme tangotango-theme tango-plus-theme tango-2-theme sunny-day-theme sublime-themes subatomic256-theme subatomic-theme spacegray-theme soothe-theme solarized-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme smeargle seti-theme reverse-theme rebecca-theme railscasts-theme purple-haze-theme professional-theme planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme orgit organic-green-theme org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noctilux-theme naquadah-theme mustang-theme monokai-theme monochrome-theme molokai-theme moe-theme mmm-mode minimal-theme material-theme markdown-toc markdown-mode majapahit-theme magit-gitflow madhat2r-theme lush-theme livid-mode skewer-mode simple-httpd light-soap-theme json-mode json-snatcher json-reformat js2-refactor multiple-cursors js2-mode js-doc jbeans-theme jazz-theme ir-black-theme inkpot-theme htmlize heroku-theme hemisu-theme helm-gitignore helm-company helm-c-yasnippet hc-zenburn-theme gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme gnuplot gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link gh-md gandalf-theme fuzzy flatui-theme flatland-theme farmhouse-theme exotica-theme evil-magit magit magit-popup git-commit ghub treepy graphql with-editor espresso-theme dracula-theme django-theme darktooth-theme autothemer darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme company-tern dash-functional tern company-statistics company color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized coffee-mode clues-theme cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme auto-yasnippet yasnippet apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes afternoon-theme ac-ispell auto-complete ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox spinner org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint indent-guide hydra hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-projectile helm-mode-manager helm-make projectile pkg-info epl helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu highlight elisp-slime-nav dumb-jump f dash s diminish define-word column-enforce-mode clean-aindent-mode bind-map bind-key auto-highlight-symbol auto-compile packed aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core popup async))))
