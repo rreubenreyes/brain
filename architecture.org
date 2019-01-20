@@ -844,15 +844,127 @@ Some Hack conventions:
 - All variables resolve to physical memory addresses.
 
 **** 4.2.3 - The C-Instruction 
+The *C-instruction* is what gets almost everything done in the Hack machine language. It answers three questions:
 
+1. What do you want to compute?
+2. Where do you want to store the computed value?
+3. What do you want to do next?
 
+#+BEGIN_SRC
+C-instruction:  dest=comp;jump  // `dest` or `jump` may be empty
+                                // if `dest` is empty, emit `=`
+                                // if `jump` is empty, emit `;`
+BINARY: [1, 1, 1, a] [c1, c2, c3, c4] [c5, c6, d1, d2] [d3, j1, j2, j3]
+#+END_SRC
 
+The leftmost bit is the C-instruction code, which is 1. The next two bits are insignificant as they aren't used.
 
+The /comp/ field (=a=, =c1-=c6=) is a 6-bit array which instructs the ALU what to compute. The /dest/ field (=d1=-=d3=) instructs where to store the computed value (ALU output). The /jump/ field (=j1=-=j3=) specifies a jump condition, namely which command to fetch and execute next.
 
+***** The computation specification 
+If we look back to chapter 2, we'll see that the Hack ALU has six control pins which affect what computation the ALU will be doing. The /computation/ field specifies seven control pins via pins =a= and =c1-c6=, meaning we can execute one of 128 possible functions based on this field.
 
+Suppose we want to set a register =x= to 2, and then compute =D-x=? The corresponding code would be:
+#+BEGIN_SRC nand2tetris
+@x // assuming `x` is a valid register
+M=2
+D=D-A
+#+END_SRC 
 
+The corresponding /C-instruction/ we used in that example was =1110 1001 1000 0000=.
 
+***** The destination specification 
+The /destination specification/ specifies *where* to put the results of our computation. It is a 3-bit array, where the first and second =d=-bits specify whether to store the computed value in the =A= register or =D= register, while the third bit specifies whether or not to store the computed value in =M=.
 
+What if we want to increment the value of =Memory[7]=, and also store the value in =D=? The corresponding machine language instruction would be:
+
+#+BEGIN_SRC binary
+0000 0000 0000 0111 ;; @7
+1111 1101 1101 1000 ;; MD=M+1
+#+END_SRC
+
+A table of =d=-field mnemonics:
++----------------+----------------+----------------+---------+----------------------+
+|d1              |d2              |d3              |Mnemonic |Destination           |
++----------------+----------------+----------------+---------+----------------------+
+|0               |0               |0               |null     |value not stored      |
+|0               |0               |1               |M        |Memory[A]             |
+|0               |1               |0               |D        |D register            |
+|0               |1               |1               |MD       |Memory[A] and D reg.  |
+|1               |0               |0               |A        |A register            |
+|1               |0               |1               |AM       |A register and Mem[A] |
+|1               |1               |0               |AD       |A reg. and D reg.     |
+|1               |1               |1               |AMD      |A, M[A], D            |
++----------------+----------------+----------------+---------+----------------------+
+
+***** The jump specification 
+The /jump/ field of the C-instruction tells the computer what to do next. There are two possibilities:
+
+1. The computer should either fetch and execute the next instruction in the program, or
+2. It should fetch and execute an instruction from somewhere else in the program.
+3. If #2 applies, then "somewhere else" refers to the value in the =A= register.
+
+Whether or not a jump should actually materialize depends on the three =j=-bits /and/ on the ALU output value. This is because there are several jump commands which rely on the ALU output.
+
+A table of =j=-field mnemonics: 
++----------------+----------------+----------------+---------+----------------------+
+|j1              |j2              |j3              |Mnemonic |Effect                |
++----------------+----------------+----------------+---------+----------------------+
+|0               |0               |0               |null     |no jump               |
+|0               |0               |1               |JGT      |if out > 0 jump       |
+|0               |1               |0               |JEQ      |if out = 0 jump       |
+|0               |1               |1               |JGE      |if out >= 0 jump      |
+|1               |0               |0               |JLT      |If out < 0 jump       |
+|1               |0               |1               |JNE      |If out != 0 jump      |
+|1               |1               |0               |JLE      |If out <= 0 jump      |
+|1               |1               |1               |JMP      |unconditional jump    |
++----------------+----------------+----------------+---------+----------------------+
+
+***** Conflicting uses of a register  
+Key usesof the =A= register is to specify a /data memory/ location for a C-instruction's =c=-field, or to specify an /instruction memory/ location for a jump. Thus, because the =A= register can be used to store data related to both data memory and instruction memory, *we should not use =M= when referring to instruction memory*.
+
+**** 4.2.4 - Symbols 
+Assembly symbols can refer to memory addresses using either constants or symbols. We introduce those to assembly in three ways:
+
+- Predefined symbols :: A special subet of RAM addresses can be referred to by any assembly program using the following:
+  - Virtual registers :: =R0= to =R15= are predefined to refer to RAM addresses 0 to 15.
+  - Predefined pointers :: =SP=, =LCL=, =ARG=, =THIS=, and =THAT= are predefined to refer to RAM addresses 0 to 4.
+  - I/O pointers :: =SCREEN= and =KBD= refer to I/O pins, specifically =0x4000= (input) and =0x6000= (output).
+- Label symbols :: These are user-defined which serve to label destinations of =goto= commands. They are usually surrounded by parentheses: =(LOOP)= and refer to a location in instruction memory.
+- Variable symbols :: These are also user-defined. They are assigned RAM addresses sequentially, starting at address =16= (=0x0010=). 
+
+**** 4.2.5 - Input/Output Handling 
+
+***** Screen 
+The Hack computer has a bitmapped 512x256 black/white screen, which is contained within a contingent block of memory starting at =0x4000=. Each row in the physical screen is represented by 32 consecutive 16-bit words. Thus, the pixel at row =r= from the top and column =c= from the left is stored at memory location: =RAM[0x4000 + r * 32 + c / 16]=. To write to the screen, simply set a screen bit to 1; to erase from the screen, set a screen bit to 0.
+
+***** Keyboard 
+The Hack computer interfaces with a physical keyboard via a single-word memory register, located at =RAM[0x6000]=. Whenever a key is typed, its ASCII code appears as a word at =0x6000=. When no key is being pressed, a =0= appears at that address. The Hack computer uses additional keycodes in addition to the ASCII specification; they are listed in the book.
+
+**** 4.2.6 - Syntax Conventions and File Format 
+
+***** Binary code files 
+Stored under extention =.hack=. Each line consists of a sixteen-bit instruction. The binary code represented by the file's /n/th line is stored in address /n/ of instruction memory.
+
+***** ASM files 
+Stored under extension =.asm=.
+
+***** Constants and symbols 
+Constants must be non-negative and are always written in decimal notation. A user-defined /symbol/ can be any sequence of letters, digits, undescores, dots, dollar signs, or colons. Symbols can't begin with numbers.
+
+***** Comments 
+=//=
+
+***** Whitespace
+Don't worry about it!
+
+***** Case conventions 
+All ASM mnemonics should be written in uppercase. Variable names should be in lowercase.
+
+*** 4.3 - Perspective 
+The Hack machine language is almost as simple as machine languages get. Most computers have more instructions, more data types, more registers... more of everything.
+
+We can describe Hack as a "1/2 address machine". Since there's no room to pack both an instruction code and a 15-bit address in the 16-bit instruction format, it basically takes twice as many instructions in Hack as it does another machine language.
 
 
 
