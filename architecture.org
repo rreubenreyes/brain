@@ -4,13 +4,6 @@
 :Author: Noam Nisan, Shimon Schocken
 :CATEGORY: nand2tetris
 :END:
-*** Key Sections
-
-[[1-world-below][- The world below as we know it]]
-[[1-hdl][- HDL]]
-[[nand-project-01][- Project 01]]
-[[nand-project-02][- Project 02]]
-[[nand-project-03][- Project 03]]
 ** Introduction
 This book teaches three things:
 
@@ -416,7 +409,7 @@ This becomes important a bit later down the line when we build a CPU!
 The Hack ALU is ideal for teaching purposes because of its simplicity, elegance, and ease of implementation. The bitwise functions it covers are fairly straightforward; they are visibly based off of early abstractions.
 
 As we said before, the ALU is just putting a bunch of our previous chips into one chip!
-*** Project 02 <<nand-project-02>>
+*** Project 02 
 - GIVEN :: All the chips built in Project 01!
 - OBJECTIVE :: Build the a =HalfAdder=, =FullAdder=, =Add16=. =Inc16=, and =ALU=.
   - Note that these chips are all computational chips, going from simple to more complex.
@@ -969,14 +962,104 @@ We can describe Hack as a "1/2 address machine". Since there's no room to pack b
 The /assembler/ is the piece of architecture that is responsible for compiling our ASM into machine code. We will tackle this in another chapter.
 
 *** 4.4 - Project 
-- OBJECTIVE :: Get a taste of low-level progrmaming in ASM, and get acquainted with the Hack computer platform.
-- CONTRACT :: Write and test the two programs as follows:
+- OBJECTIVE :: Get a taste of low-level progrmaming in ASM, and get acquainted with the Hack computer platform. - CONTRACT :: Write and test the two programs as follows:
   - /Multiplication program/ =Mult.asm= :: The inputs of this program are the current values stored into =R0= and =R1=. The program computes =R0 * R1= and stores the result in =R2=.  We assume that ~R0 >= 0~, ~R1 >= 0~, and ~R0 * R1 < 32768~.
-  - /I/O-Handling Program/ =Fill.asm= :: This program runs an infinite loop that listens to the keybaord input. When a key is pressed, the program blackens the screen (writes a "1" to every pixel). When no key is pressed, the screen is cleared. The screen should maintain its "on" state for as long as any key is being pressed and held. 
+  - /I/O-Handling Program/ =Fill.asm= :: This program runs an infinite loop that listens to the keyboard input. When a key is pressed, the program blackens the screen (writes a "1" to every pixel). When no key is pressed, the screen is cleared. The screen should maintain its "on" state for as long as any key is being pressed and held. 
 
-**** TODO =Mult= 
-**** TODO =Fill= 
+**** DONE =Mult= 
+CLOSED: [2019-01-21 Mon 14:43]
+- State "DONE"       from "TODO"       [2019-01-21 Mon 14:43]
+**** DONE =Fill= 
+CLOSED: [2019-01-21 Mon 14:43]
 
 
 
+
+
+
+- State "DONE"       from "TODO"       [2019-01-21 Mon 14:43]
+** Chapter 5: Computer Architecture 
+We are now ready to take all the chips that we built in chapters 1-3 and integrate them into a general-purpose computer capable of running stored programs!
+
+The computer we will build is called /Hack/, and it has two important virtues:
+
+1. Hack is a simple machine that can be constructed in just a few hours.
+2. Hack is sufficiently powerful to illustrate the key operating principles and hardware elements of any digital computer.
+
+We will first start by introducing the *stoerd program* concept and *von Neumann architecture*; the Hack platform is one example of a von Neumann machine. We'll learn how to implement the Hack platform using the chips we have built thus far.
+
+*** 5.1 - Background
+**** 5.1.1 - The Stored Program Concept
+The most unique feature of the digital computer is its versatility. It has finite hardware, yet it can perform a practically infinite array of tasks. This is the direct result of the /stored program/ concept.The basic idea is that hte computer is based on a fixed hardware platform, capable of executing a fixed repretroire of instructions. Yet at the same time, these instructions can be used and combined like building blocks, yielding arbitrarily sophisticated programs.
+
+These programs are not embedded in the hardware. *These programs' code is stored and manipulated in the computer's memory, /just like data/*. This is where we begin to formally study computers using the term "software".
+
+**** 5.1.2 - The von Neumann Architecture 
+The stored program concept is a key element of many abstract and practical computer models, most notably the /universal Turing machine/ and the /von Neumann machine/. The von Neumann machine is a practical architecture and the conceptual blueprint of almost all computer platforms today, while the Turing machine is used mainly to analyze the logical foundations of computer systems.
+
+The von Neumann architecture is based on a /central processing unit/ interacting with a /memory/ device, receiving data from some /input/ device, and sending data to some /output/ device. At the heart of this architecture lies the stored program concept: *The computer's memory stores not only the data that the computer manipulates, but also the very instructions that tell the computer what to do*.
+
+**** 5.1.3 - Memory 
+The memory of a von Neumann machine holds /data items/ and /programming instructions/. These are usually treated differently, and in some computers they are stored in separate memory units.
+
+In spite of their different functions, both types of information are represented as binary numbers that are stored in the same generic random-access structure (RAM).
+
+***** Data memory
+High-level programs manipulate abstractions such as variables, arrays, and objects. These structures must be stored in some kind of memory, and in our case we choose to allocate /data memory/.
+
+Once an individual word has been selected to form the data memory by specifying its address, it can be either /read/ from or /written/ to.
+
+***** Instruction memory 
+When translated into machine language, each high-level command becomes a series of binary words which represent the computer hardware's machine language. These instructions (high-level code) are stored in the computer's /instruction memory/.
+
+In each step of the computer's operaation, the CPU /fetches/ a word from the instruction memory, decodes it, executes it, and figures out where to go next. 
+
+**** 5.1.4 - Central Processing Unit 
+The CPU is the *centerpiece of the computer's architecture*. It is in charge of executing the instructions of the currently loaded program, which tell hthe CPU to carry out various calculations, read/write values from/into memory, and to conditionally jump to other locations in instruction memory. The CPU executes these tasks using three main hardware elements: The /ALU/, a set of /registers/, and a /control unit/.
+
+***** ALU
+The ALU is built to perform all the low-level arithmetic and logical operations featured by the computer.
+
+***** Registers 
+The CPU is designed to carry out simple calculations /quickly/, and for this reason we use a memory array with limited nesting and with direct-access capability. These local registers are what allow fast computation speed.
+
+***** Control unit 
+A computer instruction is represented as a binary code, typically 16, 32, or 64 bits wide. Before an instruction can be executed, ti must be decoded, and the information embedded in it must be used to signal various hardware devices (ALU, registers, memory) how to execute the instruction.
+
+The control unit is what does this instruction decoding; it is also responsible for figuring out which instruction to fetch and execute next.
+
+The CPU operation can now be described as a repeated loop: *Fetch an instruction from memory, decode it, execute it, fetch the next instruction, and so on*. THe instruction execution may involve one or more of the following /micro tasks/: Have the ALU compute some value, manipulate internal registers, read a word from the memory, and write a word to the memory. In the process of executing these tasks, the CPU also figures out which instruction to fetch and execute next.
+
+**** 5.1.5 - Registers 
+Memory access is usually a slow affair. When the CPU needs to retrieve the contents of an address /j/ that is external from the CPU, the following process ensues:
+
+1. /j/ travels from the CPU to the RAM's address input.
+2. The RAM's direct-access logic selects the memory address whose address is /j/.
+3. The contents of =RAM[j]= travel back to the CPU.
+
+This is a round-trip affair. Fortunately, having registers /within/ the CPU remove the need for a round-trip. Because the registers are physically inside the CPU, it takes almost no time for the CPU to access them. Second, there are typically only a handful of registers, compared to millions of memory blocks located outside of the CPU.
+
+Different CPUs employ different numbers and kinds of registers, and for different purposes. In some computer architectures, each register can serve more than one purpose:
+
+***** Data registers 
+These give the CPU short-term memory services. For example, when calculating =(a - b) * c=, we must first compute and remember the value of =a - b=; this is what a data register is used for, as a "temporary home" for the intermediate values we need to carry out a full calculation.
+
+***** Addressing registers 
+The CPU has to continuously access memory in order to read and write data. For this purpose, the literal values (e.g. in C, =&a=) of addresses of memory that must be accessed are kept in /addressing registers/. 
+
+***** Program counter registers
+When executing a program, the CPU must always keep track of the address of the next instruction that must be fetched from the program. This is usually kept in a special register called the /program counter/. This allows the CPU to behave in one of two ways: If the current instruction does not contain a =goto= instruction, the program counter's current value is used to determine the next instruction that must be fetched and executed. Otherwise, the =goto= location is written to the program counter.
+
+**** 5.1.6 - Input and Output 
+Computers interact with their external environments using a diverse array of I/O devices, including screens, keyboards, mice, printers... etc.
+
+There are two reasons we do not concern ourselves with the anatomy of these devices. First, they are isolated pieces of technology, all of which require a unique understanding. Second, computer scientists have come up with ways to make all of these external media look exactly the same to the computer. The simplest trick in this art is called =memory-mapped I/O=.
+
+The basic idea of memory-mapped I/O is to create a binary emulation of the I/o device, making it "look" to the CPU like a normal memory segment. Each I/O device is allocated an exclusive area in memory, becoming its "memory map".
+
+In the case of an input device, the memory map is made to continuously /reflect/ the physical state of the device. In the case of an output device, the memory map is made to continuously /drive/ the physical state of the device.
+
+When external events affect some input devices, certain values are written to certain locations in their memory maps, and likewise when internal events should cause external state changes.
+
+*** 5.2 - The Hack Hardware Platform Specification
 
