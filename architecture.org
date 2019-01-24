@@ -1062,4 +1062,15 @@ In the case of an input device, the memory map is made to continuously /reflect/
 When external events affect some input devices, certain values are written to certain locations in their memory maps, and likewise when internal events should cause external state changes.
 
 *** 5.2 - The Hack Hardware Platform Specification
+**** 5.2.1 - Overview
+The Hack platform is a 16-bit von Neumann machine consisting of a CPU, two separate memory modules (/data/, /instruction/), and a screen and keyboard.
+
+It executes programs that reside in its instruction memory. The instruction memory is a read-only device, and thus programs are loaded into it using some exogenous means (external disk or drive or something). This behavior is simulated.
+
+The Hack CPU consists of the ALU, along with the /D/-register and /A/-register, as well as the program counter (PC). D and A are general-purpose registers that can be manipulated by arithmetic and logical instructions.
+
+The Hack machine language is based on two command types: =C=-instructions for assignments and control flow, and =A=-instructions for loading data into the /A/-register. 
+
+***** Computer operation per clock cycle 
+The computer's architecture is wired in such a way that the output of the PC chip is connected to thea ddress input of the ROM chip. This way, the ROM chip always emits the word ROM[PC], namely, the contents of the instruction memory location whose address is pointed at by the PC. This value is called the *current instruction*.
 
