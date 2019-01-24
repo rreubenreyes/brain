@@ -1074,3 +1074,111 @@ The Hack machine language is based on two command types: =C=-instructions for as
 ***** Computer operation per clock cycle 
 The computer's architecture is wired in such a way that the output of the PC chip is connected to thea ddress input of the ROM chip. This way, the ROM chip always emits the word ROM[PC], namely, the contents of the instruction memory location whose address is pointed at by the PC. This value is called the *current instruction*.
 
+The overall computer operation *during each clock cycle* is as follows:
+
+****** Execute
+Various bit parts of the current instruction are simultaneously fed to various chips inside the computer. If it's an /address instruction/ (MSB = 0), then the A-register is set to the 15-bit constant embedded in the instruction. If it's a /compute instruction/, then its underlying =a=, =c=, =d=, and =j= bits are treated as control bits that cause the ALU and registers to execute the instruction.
+
+****** Fetch 
+Which instruction to fetch next is determined by the jump bits of the current instruction, and by the ALU output. These values together determine whether a jump should occur. If so, the PC is set to the value of the A-register. Otherwise, it is incremented by 1. In the next clock cycle, the instruction that the program counter points at emerges from the ROM's output, and the cycle continues.
+
+****** The fetch-execute cycle 
+The Hack platform employs two kinds of instructions: An /address instruction/, which signifies the use of the A-register, and a /compute instruction/, which operates on the results of the previous address instruction. 
+
+**** 5.2.2 - Central Proessing Unit
+The CPU of the Hack platform is designed to execute 16-bit instructions according to the Hack machine language. It expects to be connected to both instruction memory and data memory.
+
+**** 5.2.3 - Instruction Memory 
+Direct-access ROM. Consists of 32K addressable 16-bit regiters.
+
+**** 5.2.4 - Data Memory 
+Direct-access memory. To read the contents of register =n=, we put =n= in the memory's =address= input and look at the =out= output. We utilize the =load= pin to specify whether to read (=0=) or write (=1=) to any given register.
+
+***** Memory maps
+The Hack platform uses a standard keyboard and screen as I/O. These devices interface with the computer's data memory, where memory maps are formed in order to execute control over these I/O devices. The screen is designed a memory map starting from address =0x4000=, while the keyboard is designated a memory map starting from address =0x6000=. For an input device, the contents of its memory map reflect the external state of the device. For an output device, the external state of the device reflects the contents of its memory map.
+
+***** Overall memory 
+The overall address space of the Hack platform is provided by a chip called /Memory/. The memory chip includes RAM and the screen and keyboard memory maps. These modules reside in a single address space that is then partitioned into four spaces:
+
+- RAM is designated addresses =0= through =16383=.
+- The screen is designated addresses =16384= through =24575=.
+- The keyboard is designated addresses =24575= through (?).
+
+**** 5.2.5 - Computer 
+The topmost chip in the Hack hardware hierarchy is a complete computer system designed to execute programs written in the Hack machine language.
+
+*** 5.3 - Implementation 
+We build our chips with HDL and write programs for the computer in Hack ASM
+
+**** 5.3.1 - The Central Processing Unit
+The CPU implementation objective is to create a logic gate architecture capable of executing a given Hack instruction and fetching the next instruction to be executed. It involves designing /control logic/ which can perform the following:
+
+- Instruction decoding :: Parse the instruction into its underlying fields, i.e. subsets of bits. We call these "control bits".
+- Instruction execution :: Signal the various chip parts of the computer what they should do in order to execute the instruction. This is done by routing all control bits to their intended destinations.
+- Next instruction fetching :: Figure out which instruction to execute next. THis decision depends on the jump bits of the instruction as well as two control bits emitted by the ALU.
+
+***** Instruction decoding & execution
+The 16-bit instruction loaded into the CPU's input pin can represent either =A= or =C= instructions. In order to figure out what the word means, we can break the instruction into sub-fields:
+
+=i xx a cccccc ddd jjj=
+
+- =i= :: represents the *instruction type*: If =i= is equal to 1, then the instruction is a =C= instruction. Else, it's an =A= instruction.
+
+In the case of an =A= instruction, the remaining 15 bits form the memory address which should be accessed.
+- =x= :: bits are always set to 1, as they are not used.
+- a & c :: In the case of a =C= instruction, the =a= and =c= bits code the /comp/ part, which tell the ALU what function to compute. The =a= bit in particular tells the CPU whether to operate on the A or C-register.
+- =d= :: represents the /destination/ field. It tells the CPU where to store the value computed by the =a= and =c= bits.
+- j :: represents the /jump/ field. It tells the computer whether or not to execute a jump, and whether it should be conditional or unconditional. Conditional jumps are based on the value that is currently loaded into the =A= register.
+
+The various fields of the instruction are routed simultaneously to various parts of the architecture, where they cause different chips to do what they need to in order to execute whatever instruction was given to the CPU. 
+
+***** Next instruction fetching 
+As a side effect of executing the current instruction, the CPU also determines the address of the next instruction and emits it via =pc=. The program counter determines what to do next. If we would like to =goto= a specific instruction memory address, we set the PC =load= to 1 and feed the desired address into the PC's =in= pin. Else, we set =load= to 0. We also have a =reset= pin with predictable behavior. The output of the PC is then used to determine the next instruction. This causes the following behavior:
+
+#+BEGIN_SRC 
+If jump(t) then PC(t) = A(t - 1) // where A is the value that was loaded into the A register last clock cycle
+else PC(t) = PC(t - 1) + 1
+#+END_SRC
+
+**** 5.3.2 - Memory 
+According to its specification, the =Memory= chip of the Hack platform is essentially a package of three lower-level chips: RAM16K, screen, and keyboard.
+
+**** 5.3.3 - Computer 
+The topmost =Computer= chip depends on the implementation and function of the =CPU= and =Memory= chips. The construction of the computer is then fairly straightforward.
+
+*** 5.4 - Perspective 
+Again (for like the 10th time this book I swear), the Hack computer is minimal as all HELL.
+
+The Hack machine is *general-purpose*, not *dedicated*. Dedicated means like cash register or caluclator or SCADA system or PLC or something. Splitting data and instruction memory isn't normal, but Hack does it to teach the concept. All of this "dumbing down" is done to actually teach computer architecture and it is clearly working because I think I know what I'm doing now.
+
+*** 5.5 - Project 
+- Objective :: Build the Hack computer platform.
+- Resources :: Hardware simulator and HDL.
+- Contract :: The computer should be able to execute Hack ASM and stuff. Demonstrate this capability by running the three programs in Chapter 4.
+- Component Testing :: test scripts BABY
+- Test Programs :: yeah
+
+Build the computer in the following order:
+
+**** TODO Memory 
+Composed from =RAM16K=, =Screen=, and =Keyboard=.
+
+**** TODO CPU 
+See book figure 5.9.
+
+**** TODO Instruction Memory 
+Use built-in =ROM32K=.
+
+**** TODO Computer 
+Use the other chips.
+
+
+
+
+
+
+
+
+
+
+- State "DONE"       from              [2019-01-24 Thu 15:48]
