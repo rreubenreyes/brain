@@ -1160,25 +1160,307 @@ The Hack machine is *general-purpose*, not *dedicated*. Dedicated means like cas
 
 Build the computer in the following order:
 
-**** TODO Memory 
+**** DONE Memory 
+CLOSED: [2019-01-25 Fri 09:59]
+- State "DONE"       from "TODO"       [2019-01-25 Fri 09:59]
 Composed from =RAM16K=, =Screen=, and =Keyboard=.
 
-**** TODO CPU 
-See book figure 5.9.
+**** DONE CPU 
+CLOSED: [2019-01-25 Fri 14:08]
+- State "DONE"       from "TODO"       [2019-01-25 Fri 14:08]
+See book figure 5.9
 
-**** TODO Instruction Memory 
+***** scratch
+TL;DR when dealing with complicated logic flowcharts, try to identify "composite" conditions and reduce them down to the lowest denomination
+
+**** Instruction Memory 
 Use built-in =ROM32K=.
 
-**** TODO Computer 
+**** DONE Computer 
+CLOSED: [2019-01-25 Fri 14:44]
+- State "DONE"       from "TODO"       [2019-01-25 Fri 14:44]
 Use the other chips.
+** Chapter 6: Assembler 
+The first half of the book so far has dealt with a computer's *hardware platform*. The remaining chapters will deal with the computer's *software hierarchy*. We will be working our way up from the /assembler/ all the way up to a simple OOP language.
+
+In this chapter we will learn exactly how to develop a /Hack assembler/ which is capable of generating binary code that can run as is on the hardware platform we built last chapter. Since the relationship between symbolic assembly commands and actual binary machine code is straightforward, writing in assembler, it turns out, is not difficult. One complication comes from allowing assembly programs to use symbolic references to memory addresses; in this case we must define a /symbol table/, a data structure which contains mapped pairs of symbols:addresses. 
+
+As usual, the purpose of the Hack assembler is to demonstrate key software engineering principles used in the construction of any assembler.
+
+The software projects that follow may be implemented in any programming language.
+
+*** 6.1 - Background 
+Machine languages are typically specified as either /symbolic/ or /binary/. Binary codes represent "actual" machine instructions, while symbolic codes... represent binary codes.
+
+Because binary codes are typically broken down by bits, they can be easily translated into a symbolic language. For example, take =1100 0010 1000 0001 1000 0000 0000 0111=. Let's say that the left-most 8 bits represent an operation code, the next 8 bits represent a register, and the remaining 16 bits represent an address. The sentence here is (roughly) "Do this operation on this register and assign the result to this address".
+
+We choose to use a "standard" or "best-practice" syntax to construct these symbolic languages. The above instruction could be translated, for example, to =LOAD R3 7=, in assembly. Because the relationship between assembly and binary codes are so close, it becomes relatively trivial to both /write/ assembly code and /compile/ it into machine code. 
+
+Assembly code uses symbols in two ways:
+- As variables :: The programmer can use symbolic variable names, and the translator will "automatically" assign them to memory addresses.
+- As labels :: The programmer can "mark" various locations in the program with symbols. (=LOOP=, =START=, =END=, etc.)
+
+**** Symbol Resolution
+So how /exactly/ do we convert a symbolic program into a binary one?
+
+We start by making two arbitrary rules: *The translated code will be stored into the computer's memory starting at address 0, and variables will be allocated to memory locations starting at address 1024*. (These rules are specific to the target hardware platform; they shouldn't be taken absolutely!) Next, we build a *symbol table*:
+
+For each new symbol =xxx= encountered in the source code, we add a line (=xxx=, =n=) to the symbol table, where =n= is the memory address associated with the symbol according to our rules. Once the program's symbols have been completely parsed and the symbol table is complete, we use it to translate the program into binary.
+
+***** Example
+****** Assembly pseudocode 
+// compute sum=1+...+100
+  i=1
+  sum=0
+LOOP:
+  if i=101 goto END 
+  sum=sum+i
+  I=i+1
+  goto LOOP
+END:
+  goto END
+#+END_SRC
+
+****** Resulting symbol table 
+|--------+----------------|
+| symbol | memory address |
+|--------+----------------|
+| i      |           1024 |
+| sum    |           1025 |
+| LOOP   |           1026 |
+| END    |           1027 |
+|--------+----------------|
+
+****** Caveat 
+Complicated assembly commands (such as ~if i=101 goto END~) may translate into several machine instructions, and thus will end up occupying several memory locations.
+
+**** The Assembler 
+Before an assembly program can be executed on a computer, it must be translated into the computer's binary machine language. This is done by a program called the *assembler*. It takes as input a stream of assembly commands, and generates as output a stream of equivalent binary instructions.
+
+Basically, it's a text-processing/tex-translation program. Programmers who write assemblers must be given the full documentation of the assembly syntax on the one hand, and the respective binary codes on the other hand. This contract is typically called the *machine language specification*.
+
+For each symbolic command found in the assembly language, the following steps occur:
+
+1. Parse the symbolic command into its underlying fields.
+2. For each field, generate the corresponding bits in machine language.
+3. Replace all symbolic references with numeric addresses of memory locations.
+4. Assemble the binary codes into a complete machine instruction.
+
+(Pro tip: The hard part is handling symbols)
+
+*** 6.2 - Hack Assembly-to-Binary Translation Specification
+**** 6.2.1 - Syntax Conventions and File Formats
+***** File names 
+Hack machine code files end in =.hack=. Hack ASM files end in =.asm=.
+
+***** Binary code (=.hack=) files
+A binary code file is composed of text lines, each consisting of a four-byte word. When compiled, each line =n= is stored at address =n= of instruction memory.
+
+***** Assembly language (=.asm=) files 
+An assembly language file is composed of text lines, each representing either an /instruction/ or a /symbol declaration/:
+- Instruction :: an /A/ or /C/ instruction.
+- Symbol :: This "marks" a location in instruction memory and binds that location to a user-defined symbol. For example, the symbol =(LOOP)= may be accessed by the /A/-instruction: =@LOOP=. 
+
+***** Constants and symbols 
+/Constants/ must be non-negative and written in decimal notation. A user-defined /symbol/ can be any sequence of letters, digits, underscores, dots, dollar signs, and/or colons that does not begin with a digit.
+
+***** Comments 
+=//=
+
+***** Whitespace 
+sike lol
+
+***** Case conventions 
+All assembly mnemonics are written in uppercase (=JGT=, =JEQ=, etc). Uppercase for labels, lowercase for variable names.
+
+**** 6.2.2 - Instructions 
+Instructions are either /A/ (addressing) or /C/ (computing). The specification:
+***** /A/-instructions 
+#+BEGIN_SRC 
+Syntax:    @value
+Binary:    0vvv vvvv vvvv vvvv
+Comments:  The first bit (0) signifies an A-instruction. The remaining bits represent the address which must be accessed through this instruction.
+#+END_SRC
+
+***** /C/-instructions 
+#+BEGIN_SRC 
+Syntax:    dest=comp;jump
+Binary:    111a cccc ccdd djjj
+Comments:  The first bit (1) signifies a C-instruction. "a" represents whether the ALU should operate on data (D/A) or a pointer to other data (D/M). "c" represents an computation input to the ALU. "d" represents the register(s) which will receive the ALU's output. "j" represents the jump conditions and effects the location in instruction memory which will be fetched next.
+#+END_SRC
+
+**** 6.2.3 - Symbols 
+Hack assembly commands can refer to memory addresses or to either constants or symbols. Symbols in assembly programs come from three sources:
+
+***** Predefined symbols
+Any Hack assembly program can use the following predefined symbols:
+
+|--------+-----------------------+-------------------|
+| Label  | RAM address (decimal) | RAM address (hex) |
+|--------+-----------------------+-------------------|
+| SP     |                     0 |            0x0000 |
+| LCL    |                     1 |            0x0001 |
+| ARG    |                     2 |            0x0002 |
+| THIS   |                     3 |            0x0003 |
+| THAT   |                     4 |            0x0004 |
+| R0-R15 |                  0-15 |          0x0000-f |
+| SCREEN |                 16384 |            0x4000 |
+| KBD    |                 24576 |            0x6000 |
+|--------+-----------------------+-------------------|
+
+***** Label symbols 
+=(LOOP)= and such
+
+***** Variable symbols 
+yeah
+
+*** 6.3 - Implementation 
+=Assembler= is available as a shell script =Assembler.sh=. The Hack assembler reads a text file as input, in this chapter's case =Prog.asm=. It will then output a text file containing machine code, called =Prog.hack=. We call the assembler with the syntax =$ Assembler sourcefile.asm=.
+
+The translation that takes place is one-to-one.
+
+**** A note about API notation 
+We propose an assembler implementation based on four modules: A /Parser/ module that parses the input, a /Code/ module that provides the binary codes of all of the assembly mnemonics, a /SymbolTable/ module that handles symbols, and a main program that drives the whole thing.
+
+This assembler development is the first in a series of five software construction projects that build our hierarchy of translators (*assembler*, *virtual machine*, and *compiler*).
+
+This book provides a language-agnostic API consisting of modules (C# =using= or =namespace=, Java =include= or =package=, C++ =include=, =using=, or =namespace=, JS =import= or =require=... etc.)
+
+**** 6.3.1 - The Parser Module 
+The main function of the parser is to break each assembly command into its underlying components (fields and symbols). The API is as follows:
+
+***** Parser 
+Encapsulates access to input code. Reads an assembly language command, parses it, and *provides convenient access to the command's components (fields and symbols). *In addition, *removes all whitespace and comments.*
+
+#+BEGIN_SRC 
+Routine:    Constructor/initializer
+Arguments:  Input file/stream
+Returns:    ---
+Function:   Opens the input file/stream and gets ready to parse it.
+#+END_SRC
+
+****** Attempt at reverse-engineering
+#+BEGIN_SRC c
+#include <parser.h>
+
+int main(int argc, int* argv) {
+  if (sizeof(argv)/sizeof(int) > 2) {
+    printf("Usage: Assembler <sourcefile.asm>"); 
+  } 
+  
+  FILE* sourcefile = fopen(argv[1]);
+  // parse file by-line
+  // do all the other stuff
+}
+#+END_SRC
+
+#+BEGIN_SRC 
+Routine:    hasMoreCommands
+Arguments:  ---
+Returns:    Boolean
+Function:   Are there more commands in the input?
+#+END_SRC
+
+#+BEGIN_SRC 
+Routine:    advance
+Arguments:  ---
+Returns:    ---
+Function:   Reads the next command from the input and makes it the current command. Should be called only if `hasMoreCommands()` is true. Initially there is no current command.
+#+END_SRC
+
+#+BEGIN_SRC 
+Routine:    commandType
+Arguments:  ---
+Returns:    A_COMMAND, C_COMMAND, L_COMMAND
+Function:   Returns the type of the current command:
+  - A_COMMAND for @Xxx where Xxx is either a symbol or a decimal number.
+  - C_COMMAND for dest=comp;jump
+  - L_COMMAND (pseudo-command) for (Xxx), where Xxx is a symbol.
+#+END_SRC
+
+#+BEGIN_SRC
+Routine:    symbol
+Arguments:  ---
+Returns:    string
+Function:   Returns the symbol or decimal Xxx of the current command @Xxx or (Xxx). Should be called only when commandType() is A_COMMAND or L_COMMAND.
+#+END_SRC
+
+#+BEGIN_SRC
+Routine:    dest
+Arguments:  ---
+Returns:    string
+Function:   Returns the `dest` mnemonic in the current C-command (8 possibilities). Should be called only when commandType() is C_COMMAND.
+#+END_SRC
+
+#+BEGIN_SRC
+Routine:    comp
+Arguments:  ---
+Returns:    string
+Function:   Returns the `comp` mnemonic in the current C-command (8 possibilities).
+#+END_SRC
+
+#+BEGIN_SRC
+Routine:    jump
+Arguments:  ---
+Returns:    string
+Function:   Returns the `jump` mnemonic in the current C-command (8 possibilities).
+#+END_SRC
+ w/
+**** 6.3.2 - The /Code/ Module 
+***** Code
+Translate Hack assembly language mnemonics into binary codes.
+
+#+BEGIN_SRC
+Routine:    dest
+Arguments:  mnemonic (string)
+Returns:    3 bits
+Function:   Returns the binary code of the `dest` mnemonic.
+#+END_SRC
+
+#+BEGIN_SRC
+Routine:    comp
+Arguments:  mnemonic (string)
+Returns:    7 bits
+Function:   Returns the binary code of the `comp` mnemonic.
+#+END_SRC
+
+#+BEGIN_SRC
+Routine:    jump
+Arguments:  mnemonic (string)
+Returns:    3 bits
+Function:   Returns the binary code of the `jump` mnemonic.
+#+END_SRC
+
+**** 6.3.3 - Assembler for Programs with No Symbols 
+At first, try building an assembler that doesn't pay attention to symbols and only translates instructions. This can be done with just the /Parser/ and /Code/ modules. Next, try extending the assembler in this state in order to handle symbols.
+
+**** 6.3.4 - The /SymbolTable/ Module 
+Since Hack instructions can contain symbols, the symbols must be resolved into actual addresses. We deal with this using a /symbol table/, designed to create and maintain correspondence between symbols and their meaning. A natural data structure for representing such a relationship is a hash table. Its methods are typical of the data structure.
+
+**** 6.3.5 - Assembler for Programs with Symbols 
+Try to implement the assembler in two passes:
+
+***** Initialization
+Initialize the symbol table with all predefined symbols and their pre-allocated RAM addresses, according to section 6.2.3.
+
+***** First pass 
+Go through the entire assembly program, line by line, and build the symbol table without generating any code. Keep a running number recording the ROM address into which the current command will be eventually loaded. Each time a pseudocommand ( Xxx ) is encountered, add a new entry to the symbol table accordingly. *This pass results in entering all the program's labels along with their ROM addresses into the symbol table*. The program's variables are handled in the second pass.
+
+***** Second pass 
+Do the same thing with variables, only assign the symbols by RAM address rather than ROM location.
+
+*** 6.4 - Perspective 
+Assemblers for richer machine languages are more complex than this one, and usually feature more sophisticated symbol handling. For example, the assembler may allow programmers to explicitly associate symbols with particular data addresses. Also, many assemblers can use *macro commands*.
+
+A /macro command/ is a sequence of machine instructions that has a name. For example, say we named a macro command to be equal to ~D=M[Xxx]~; this could effectively replace two commands in our language: =@Xxx= and ~D=M~.
+
+Also, stand-alone assemblers are rarely used in practice. Computers often just compile things into machine code. It is possible, however, in some languages, to include assembly code within higher-level programs.
+
+*** 6.5 - Project 
+- Objective :: Develop an assembler that translates programs written in Hack assembly language into the binary code that can be understood by the Hack hardware platform. The assembler must implement the translation specification described in section 6.2.
+- Resources :: The only tool needed fo rthis project is the programming language in which you will implement the assembler. The book also provides an assembler to check our work against.
+- Contract :: A =Prog.asm= file loaded into the assembler will output a =Prog.hack= file. This output matches the one given by the book.
+
+There's test programs and stuff just go do it
 
 
-
-
-
-
-
-
-
-
-- State "DONE"       from              [2019-01-24 Thu 15:48]
