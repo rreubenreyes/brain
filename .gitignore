@@ -9,11 +9,11 @@ gtd.org_archive
 gtd.odt
 gtd.html
 training.org
-_inbox.org
+inbox.org
 
 shared/
 .#journal.org
-.#_inbox.org
+.#inbox.org
 .#architecture.org
 .#dsa.org
 .#gtd.org
@@ -21,7 +21,7 @@ shared/
 .#someday.org
 
 .#journal.org_archive
-.#_inbox.org_archive
+.#inbox.org_archive
 .#architecture.org_archive
 .#dsa.org_archive
 .#gtd.org_archive
