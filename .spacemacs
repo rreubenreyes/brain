@@ -140,10 +140,10 @@ values."
    ;; Default font, or prioritized list of fonts. `powerline-scale' allows to
    ;; quickly tweak the mode-line size to make separators look not too crappy.
    dotspacemacs-default-font '("Dank Mono"
-                               :size 14
+                               :size 13
                                :weight normal
                                :width normal
-                               :powerline-scale 1)
+                               :powerline-scale 1.1)
    ;; The leader key
    dotspacemacs-leader-key "SPC"
    ;; The key used for Emacs commands (M-x) (after pressing on the leader key).
@@ -329,9 +329,10 @@ before packages are loaded. If you are unsure, you should try in setting them in
 
   ;; custom org-todo keywords
   (setq org-todo-keywords
-        '((sequence "PROJECT(p)" "STORY(s)" "TODO(t)" "WAIT(w@/!)" "DOING(o@)" "MAYBE(m@)" "(x)" "|" "DONE(d!)" "CANCELED(c@)" )))
+        '((sequence "PROJECT(p)" "EPIC(e)" "STORY(s)" "TODO(t)" "WAIT(w@/!)" "DOING(o@)" "MAYBE(m@)" "(x)" "|" "DONE(d!)" "CANCELED(c@)" )))
   (setq org-todo-keyword-faces '(
                                  ("PROJECT" . (:background "#111" :foreground "#D54C46"))
+                                 ("EPIC" . (:background "#111" :foreground "#D54C46"))
                                  ("STORY" . (:background "#111" :foreground "#7FDBCA"))
                                  ("TODO" . "#B183D9")
                                  ("DOING" . "#9AE0C8")

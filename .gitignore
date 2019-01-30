@@ -1,9 +1,12 @@
 # most personal files will be ignored for the sake of not actually flooding my gh log
 # when i'm not doing anything productive related to SE/CS/web
+
+# org files to ignore
 journal.org
 work.org
 someday.org
 tickler.org
+tickler.org_archive
 gtd.org
 gtd.org_archive
 gtd.odt
@@ -11,7 +14,7 @@ gtd.html
 training.org
 inbox.org
 
-shared/
+# ignore temp files 
 .#journal.org
 .#inbox.org
 .#architecture.org
@@ -19,11 +22,17 @@ shared/
 .#gtd.org
 .#tickler.org
 .#someday.org
-
 .#journal.org_archive
 .#inbox.org_archive
+.#_inbox.org_archive
 .#architecture.org_archive
 .#dsa.org_archive
 .#gtd.org_archive
 .#tickler.org_archive
 .#someday.org_archive
+
+# ignore non-toplevel
+shared/
+
+# i have no idea what this is
+.gitignore.swp 
