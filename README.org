@@ -1,4 +1,3 @@
 * brain
 All of Reuben's =.org= files on several topics, mainly notes on CS texts.
-
-** TODO export stuff to markdown so github plays nice with it
+** DONE export stuff to markdown so github plays nice with it

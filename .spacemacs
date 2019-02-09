@@ -36,7 +36,15 @@ values."
      ;; Uncomment some layer names and press <SPC f e R> (Vim style) or
      ;; <M-m f e R> (Emacs style) to install them.
      ;; ----------------------------------------------------------------
-     auto-completion
+     (auto-completion :variables
+                      auto-completion-enable-snippets-in-popup t
+                      ;; tab key to complete as much of common completion as possible
+                      auto-completion-tab-key-behavior 'cycle
+                      ;; automatic docstring display
+                      auto-completion-enable-help-tooltip t
+                      ;; enable the most frequent matches to show first
+                      auto-completion-enable-sort-by-usage t
+                      )
      emacs-lisp
      git
      helm
@@ -51,7 +59,7 @@ values."
      ;;        shell-default-height 30
      ;;        shell-default-position 'bottom)
      ;; spell-checking
-     ;; syntax-checking
+     syntax-checking
      ;; version-control
      )
    ;; List of additional packages that will be installed without being
@@ -59,7 +67,12 @@ values."
    ;; packages, then consider creating a layer. You can also put the
    ;; configuration in `dotspacemacs/user-config'.
    dotspacemacs-additional-packages '(
+                                      add-node-modules-path
+                                      all-the-icons
                                       nand2tetris
+                                      prettier-js
+                                      terraform-mode
+                                      rjsx-mode
                                       )
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
@@ -110,12 +123,7 @@ values."
    dotspacemacs-editing-style 'vim
    ;; If non nil output loading progress in `*Messages*' buffer. (default nil)
    dotspacemacs-verbose-loading nil
-   ;; Specify the startup banner. Default value is `official', it displays
-   ;; the official spacemacs logo. An integer value is the index of text
-   ;; banner, `random' chooses a random text banner in `core/banners'
-   ;; directory. A string value must be a path to an image format supported
-   ;; by your Emacs build.
-   ;; If the value is nil then no banner is displayed. (default 'official)
+   ;; Specify the startup banner. Default value is `official', it displays ;; the official spacemacs logo. An integer value is the index of text ;; banner, `random' chooses a random text banner in `core/banners';; directory. A string value must be a path to an image format supported ;; by your Emacs build. ;; If the value is nil then no banner is displayed. (default 'official)
    dotspacemacs-startup-banner 'official
    ;; List of items to show in startup buffer or an association list of
    ;; the form `(list-type . list-size)`. If nil then it is disabled.
@@ -311,11 +319,10 @@ before packages are loaded. If you are unsure, you should try in setting them in
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
   (add-to-list 'default-frame-alist '(ns-appearance . dark))
 
-  ;; custom themes directory
-  (add-to-list 'custom-theme-load-path "~/.emacs.d/private/themes/")
-
+  ;; use rjsx-mode for javascript
   ;; nand2tetris files (.hdl, .asm, .jack) get special syntax highlighting
   (add-to-list 'auto-mode-alist '("\\.hdl\\'" . nand2tetris-mode))
+
   (setq org-emphasis-alist
         '(("*" (bold :foreground "#ef5350" ))
           ("/" italic)
@@ -324,15 +331,14 @@ before packages are loaded. If you are unsure, you should try in setting them in
           ("~" (:foreground "#f78c6c"))
           ("+" (:strike-through t))))
 
+
   ;; hide emphasis markers in org-mode
   (setq org-hide-emphasis-markers t)
 
   ;; custom org-todo keywords
   (setq org-todo-keywords
-        '((sequence "PROJECT(p)" "EPIC(e)" "STORY(s)" "TODO(t)" "WAIT(w@/!)" "DOING(o@)" "MAYBE(m@)" "(x)" "|" "DONE(d!)" "CANCELED(c@)" )))
-  (setq org-todo-keyword-faces '(
+        '((sequence "PROJECT(p)" "STORY(s)" "TODO(t)" "WAIT(w@/!)" "DOING(o@)" "MAYBE(m@)" "(x)" "|" "DONE(d@/!)" "CANCELED(c@)" ))) (setq org-todo-keyword-faces '(
                                  ("PROJECT" . (:background "#111" :foreground "#D54C46"))
-                                 ("EPIC" . (:background "#111" :foreground "#D54C46"))
                                  ("STORY" . (:background "#111" :foreground "#7FDBCA"))
                                  ("TODO" . "#B183D9")
                                  ("DOING" . "#9AE0C8")
@@ -350,6 +356,25 @@ layers configuration.
 This is the place where most of your configurations should be done. Unless it is
 explicitly specified that a variable should be set before a package is loaded,
 you should place your code here."
+  ;; use spaces instead of tabs, tab width to 4
+  (setq-default c-basic-offset 4
+                tab-width 4
+                indent-tabs-mode nil)
+
+  ;; eslint: fix on save script
+  (load-file "~/.emacs.d/private/eslint-fix.el")
+  (require 'eslint-fix)
+
+  ;; file extension major-mode config
+  (add-to-list 'auto-mode-alist '("\\.js\\'" . rjsx-mode)) ;; RJSX -> .js
+  (add-to-list 'auto-mode-alist '("\\.tf\\'" . terraform-mode)) ;; Terraform -> .tf
+
+  ;; prettier-js rules
+  (setq prettier-js-args '(
+                          "--trailing-comma" "es5"
+                          "--single-quote" 
+                           ))
+
   ;; start .org files with visual-line-mode and org-indent-mode
   (add-hook 'org-mode-hook
             (lambda ()
@@ -357,8 +382,26 @@ you should place your code here."
               (org-indent-mode t))
             t)
 
-  ;; prettify symbols for ligatures and such
-  (global-prettify-symbols-mode 1)
+  ;; rjsx-mode config
+  (add-hook 'rjsx-mode-hook
+            (lambda ()
+              (flycheck-mode t) ;; enable flycheck
+              (prettier-js-mode t) ;; enable prettier
+              (add-hook 'after-save-hook 'eslint-fix nil t)
+              (exec-path-from-shell-initialize) ;; eslint looks at PATH to initialize config
+              (setq indent-tabs-mode nil) ;;Use space instead of tab
+              (setq js-indent-level 4) ;;space width is 2 (default is 4)
+              (setq js2-strict-missing-semi-warning nil))) ;;disable the semicolon warning
+
+  ;; find local node-modules path
+  (eval-after-load 'rjsx-mode
+    '(progn
+       (add-hook 'rjsx-mode-hook #'add-node-modules-path)
+       (add-hook 'rjsx-mode-hook #'prettier-js-mode)
+       ))
+
+  ;; use icons in neotree
+  (setq neo-theme (if (display-graphic-p) 'icons 'arrow))
 
   ;; line number gutters are 4 chars wide
   (setq linum-relative-format "%4s ") (defun clip-directory ()
@@ -375,7 +418,7 @@ you should place your code here."
   )
   ;; GTD: capture items to inbox or tickler
   (setq org-capture-templates '(("t" "Todo [inbox]" entry
-                                 (file+headline "~/Dropbox/org/_inbox.org" "Tasks")
+                                 (file+headline "~/Dropbox/org/inbox.org" "Tasks")
                                  "* TODO %i%?")
                                 ("T" "Tickler" entry
                                  (file+headline "~/Dropbox/org/tickler.org" "Tickler")
@@ -441,11 +484,11 @@ you should place your code here."
  ;; If there is more than one, they won't work right.
  '(org-agenda-files
    (quote
-    ("~/Dropbox/org/gtd.org" "~/Dropbox/org/tickler.org" "~/Dropbox/org/_inbox.org")))
+    ("~/Dropbox/org/gtd.org" "~/Dropbox/org/tickler.org")))
  '(org-agenda-todo-list-sublevels t)
  '(package-selected-packages
    (quote
-    (doom-city-lights-theme web-mode tagedit slim-mode scss-mode sass-mode pug-mode helm-css-scss haml-mode emmet-mode company-web web-completion-data doom-nord-theme doom-sourcerer-theme doom-dracula-theme nand2tetris doom-themes night-owl-theme-theme zenburn-theme zen-and-art-theme white-sand-theme web-beautify underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme toxi-theme tide typescript-mode flycheck tao-theme tangotango-theme tango-plus-theme tango-2-theme sunny-day-theme sublime-themes subatomic256-theme subatomic-theme spacegray-theme soothe-theme solarized-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme smeargle seti-theme reverse-theme rebecca-theme railscasts-theme purple-haze-theme professional-theme planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme orgit organic-green-theme org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noctilux-theme naquadah-theme mustang-theme monokai-theme monochrome-theme molokai-theme moe-theme mmm-mode minimal-theme material-theme markdown-toc markdown-mode majapahit-theme magit-gitflow madhat2r-theme lush-theme livid-mode skewer-mode simple-httpd light-soap-theme json-mode json-snatcher json-reformat js2-refactor multiple-cursors js2-mode js-doc jbeans-theme jazz-theme ir-black-theme inkpot-theme htmlize heroku-theme hemisu-theme helm-gitignore helm-company helm-c-yasnippet hc-zenburn-theme gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme gnuplot gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link gh-md gandalf-theme fuzzy flatui-theme flatland-theme farmhouse-theme exotica-theme evil-magit magit magit-popup git-commit ghub treepy graphql with-editor espresso-theme dracula-theme django-theme darktooth-theme autothemer darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme company-tern dash-functional tern company-statistics company color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized coffee-mode clues-theme cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme auto-yasnippet yasnippet apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes afternoon-theme ac-ispell auto-complete ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox spinner org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint indent-guide hydra hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-projectile helm-mode-manager helm-make projectile pkg-info epl helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu highlight elisp-slime-nav dumb-jump f dash s diminish define-word column-enforce-mode clean-aindent-mode bind-map bind-key auto-highlight-symbol auto-compile packed aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core popup async))))
+    (terraform-mode hcl-mode prettier-js company-quickhelp add-node-modules-path flycheck-pos-tip pos-tip rjsx-mode doom-city-lights-theme web-mode tagedit slim-mode scss-mode sass-mode pug-mode helm-css-scss haml-mode emmet-mode company-web web-completion-data doom-nord-theme doom-sourcerer-theme doom-dracula-theme nand2tetris doom-themes night-owl-theme-theme zenburn-theme zen-and-art-theme white-sand-theme web-beautify underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme toxi-theme tide typescript-mode flycheck tao-theme tangotango-theme tango-plus-theme tango-2-theme sunny-day-theme sublime-themes subatomic256-theme subatomic-theme spacegray-theme soothe-theme solarized-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme smeargle seti-theme reverse-theme rebecca-theme railscasts-theme purple-haze-theme professional-theme planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme orgit organic-green-theme org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noctilux-theme naquadah-theme mustang-theme monokai-theme monochrome-theme molokai-theme moe-theme mmm-mode minimal-theme material-theme markdown-toc markdown-mode majapahit-theme magit-gitflow madhat2r-theme lush-theme livid-mode skewer-mode simple-httpd light-soap-theme json-mode json-snatcher json-reformat js2-refactor multiple-cursors js2-mode js-doc jbeans-theme jazz-theme ir-black-theme inkpot-theme htmlize heroku-theme hemisu-theme helm-gitignore helm-company helm-c-yasnippet hc-zenburn-theme gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme gnuplot gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link gh-md gandalf-theme fuzzy flatui-theme flatland-theme farmhouse-theme exotica-theme evil-magit magit magit-popup git-commit ghub treepy graphql with-editor espresso-theme dracula-theme django-theme darktooth-theme autothemer darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme company-tern dash-functional tern company-statistics company color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized coffee-mode clues-theme cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme auto-yasnippet yasnippet apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes afternoon-theme ac-ispell auto-complete ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox spinner org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint indent-guide hydra hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-projectile helm-mode-manager helm-make projectile pkg-info epl helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu highlight elisp-slime-nav dumb-jump f dash s diminish define-word column-enforce-mode clean-aindent-mode bind-map bind-key auto-highlight-symbol auto-compile packed aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core popup async))))
 ;; (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
