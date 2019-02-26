@@ -13,23 +13,10 @@ gtd.odt
 gtd.html
 training.org
 inbox.org
+hackathon.org
 
 # ignore temp files 
-.#journal.org
-.#inbox.org
-.#architecture.org
-.#dsa.org
-.#gtd.org
-.#tickler.org
-.#someday.org
-.#journal.org_archive
-.#inbox.org_archive
-.#_inbox.org_archive
-.#architecture.org_archive
-.#dsa.org_archive
-.#gtd.org_archive
-.#tickler.org_archive
-.#someday.org_archive
+*/.#.#
 
 # ignore non-toplevel
 shared/
