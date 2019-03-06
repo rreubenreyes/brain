@@ -46,6 +46,7 @@ values."
                       auto-completion-enable-sort-by-usage t
                       )
      emacs-lisp
+     emoji
      git
      helm
      javascript
@@ -293,7 +294,7 @@ values."
    dotspacemacs-highlight-delimiters 'all
    ;; If non nil, advise quit functions to keep server open when quitting.
    ;; (default nil)
-   dotspacemacs-persistent-server nil
+   dotspacemacs-persistent-server t
    ;; List of search tool executable names. Spacemacs uses the first installed
    ;; tool of the list. Supported tools are `ag', `pt', `ack' and `grep'.
    ;; (default '("ag" "pt" "ack" "grep"))
@@ -321,6 +322,9 @@ before packages are loaded. If you are unsure, you should try in setting them in
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
   (add-to-list 'default-frame-alist '(ns-appearance . dark))
   (add-to-list 'custom-theme-load-path "~/.emacs.d/private/themes/")
+
+  ;; shut the hell up MANPATH
+  (setq exec-path-from-shell-arguments '("-l"))
 
   ;; use rjsx-mode for javascript
   ;; nand2tetris files (.hdl, .asm, .jack) get special syntax highlighting
@@ -393,26 +397,15 @@ you should place your code here."
   ;; rjsx-mode config
   (add-hook 'rjsx-mode-hook
             (lambda ()
-              (flycheck-mode t) ;; enable flycheck
               (prettier-js-mode t) ;; enable prettier
-              (add-hook 'after-save-hook 'eslint-fix nil t)
-              (exec-path-from-shell-initialize) ;; eslint looks at PATH to initialize config
-              (setq indent-tabs-mode nil) ;;Use space instead of tab
-              (setq js-indent-level 4) ;;space width is 2 (default is 4)
               (setq js2-strict-missing-semi-warning nil))) ;;disable the semicolon warning
 
-  ;; markdown-mode
-  (add-hook 'markdown-mode-hook
-            (lambda ()
-              (flycheck-mode t)
-              t))
   ;; find local node-modules path
   (eval-after-load 'rjsx-mode
-    '(progn
-       (add-hook 'rjsx-mode-hook #'add-node-modules-path)
-       (add-hook 'rjsx-mode-hook #'prettier-js-mode)
-       ))
-
+      ' (add-hook 'rjsx-mode-hook (lambda () (add-hook 'after-save-hook 'eslint-fix nil t)))
+        (add-hook 'after-save-hook 'eslint-fix nil t)
+        (add-hook 'rjsx-mode-hook #'add-node-modules-path)
+        (add-hook 'rjsx-mode-hook #'prettier-js-mode))
   ;; use icons in neotree
   (setq neo-theme 'nerd)
 
@@ -503,7 +496,7 @@ you should place your code here."
  '(org-agenda-todo-list-sublevels t)
  '(package-selected-packages
    (quote
-    (kaolin-themes kaolin-dark-theme eltbus-theme doom-city-lights-theme doom-nord-theme \(quote\ doom-nord\)-theme \(quote\ color-theme-sanityinc-tomorrow-night\)-theme color-theme-sanityinc-tomorrow-night-theme night-owl-theme all-the-icons-dired terraform-mode hcl-mode prettier-js company-quickhelp add-node-modules-path flycheck-pos-tip pos-tip rjsx-mode web-mode tagedit slim-mode scss-mode sass-mode pug-mode helm-css-scss haml-mode emmet-mode company-web web-completion-data nand2tetris doom-themes web-beautify tide typescript-mode flycheck org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download mmm-mode markdown-toc markdown-mode magit-gitflow livid-mode skewer-mode simple-httpd json-mode json-snatcher json-reformat js2-refactor multiple-cursors js2-mode js-doc htmlize helm-gitignore helm-company helm-c-yasnippet gnuplot gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link gh-md fuzzy evil-magit magit magit-popup git-commit ghub treepy graphql with-editor company-tern dash-functional tern company-statistics company color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized coffee-mode auto-yasnippet yasnippet ac-ispell auto-complete ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox spinner org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint indent-guide hydra hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-projectile helm-mode-manager helm-make projectile pkg-info epl helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu highlight elisp-slime-nav dumb-jump f dash s diminish define-word column-enforce-mode clean-aindent-mode bind-map bind-key auto-highlight-symbol auto-compile packed aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core popup async))))
+    (emoji-cheat-sheet-plus company-emoji kaolin-themes kaolin-dark-theme eltbus-theme doom-city-lights-theme doom-nord-theme \(quote\ doom-nord\)-theme \(quote\ color-theme-sanityinc-tomorrow-night\)-theme color-theme-sanityinc-tomorrow-night-theme night-owl-theme all-the-icons-dired terraform-mode hcl-mode prettier-js company-quickhelp add-node-modules-path flycheck-pos-tip pos-tip rjsx-mode web-mode tagedit slim-mode scss-mode sass-mode pug-mode helm-css-scss haml-mode emmet-mode company-web web-completion-data nand2tetris doom-themes web-beautify tide typescript-mode flycheck org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download mmm-mode markdown-toc markdown-mode magit-gitflow livid-mode skewer-mode simple-httpd json-mode json-snatcher json-reformat js2-refactor multiple-cursors js2-mode js-doc htmlize helm-gitignore helm-company helm-c-yasnippet gnuplot gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link gh-md fuzzy evil-magit magit magit-popup git-commit ghub treepy graphql with-editor company-tern dash-functional tern company-statistics company color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized coffee-mode auto-yasnippet yasnippet ac-ispell auto-complete ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox spinner org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint indent-guide hydra hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-projectile helm-mode-manager helm-make projectile pkg-info epl helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu highlight elisp-slime-nav dumb-jump f dash s diminish define-word column-enforce-mode clean-aindent-mode bind-map bind-key auto-highlight-symbol auto-compile packed aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core popup async))))
 ;; (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -522,4 +515,4 @@ you should place your code here."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(default ((((class color) (min-colors 89)) (:foreground "#D8DEE9" :background "#2E3440")))))
