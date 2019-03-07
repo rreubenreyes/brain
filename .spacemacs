@@ -294,7 +294,7 @@ values."
    dotspacemacs-highlight-delimiters 'all
    ;; If non nil, advise quit functions to keep server open when quitting.
    ;; (default nil)
-   dotspacemacs-persistent-server t
+   dotspacemacs-persistent-server nil
    ;; List of search tool executable names. Spacemacs uses the first installed
    ;; tool of the list. Supported tools are `ag', `pt', `ack' and `grep'.
    ;; (default '("ag" "pt" "ack" "grep"))
@@ -364,10 +364,6 @@ layers configuration.
 This is the place where most of your configurations should be done. Unless it is
 explicitly specified that a variable should be set before a package is loaded,
 you should place your code here."
-  ;; performance stuff
-  (setq auto-window-vscroll nil)
-  (which-key-remove-default-unicode-chars)
-
   ;; use spaces instead of tabs, tab width to 4
   (setq-default c-basic-offset 4
                 tab-width 4
@@ -395,6 +391,7 @@ you should place your code here."
             t)
 
   ;; rjsx-mode config
+  (add-hook 'rjsx-mode-hook #'add-node-modules-path)
   (add-hook 'rjsx-mode-hook
             (lambda ()
               (prettier-js-mode t) ;; enable prettier
@@ -402,26 +399,25 @@ you should place your code here."
 
   ;; find local node-modules path
   (eval-after-load 'rjsx-mode
-      ' (add-hook 'rjsx-mode-hook (lambda () (add-hook 'after-save-hook 'eslint-fix nil t)))
-        (add-hook 'after-save-hook 'eslint-fix nil t)
-        (add-hook 'rjsx-mode-hook #'add-node-modules-path)
-        (add-hook 'rjsx-mode-hook #'prettier-js-mode))
+      '(add-hook 'rjsx-mode-hook (lambda () (add-hook 'after-save-hook 'eslint-fix nil t))))
+  
   ;; use icons in neotree
   (setq neo-theme 'nerd)
 
   ;; line number gutters are 4 chars wide
-  (setq linum-relative-format "%4s ") (defun clip-directory ()
-                                        "Put the current file name on the clipboard"
-                                        (interactive)
-                                        (let ((filename (if (equal major-mode 'dired-mode)
-                                                            default-directory
-                                                          (buffer-file-name))))
-                                          (when filename
-                                            (with-temp-buffer
-                                              (insert filename)
-                                              (clipboard-kill-region (point-min) (point-max)))
-                                            (message filename))))
-  )
+  (setq linum-relative-format "%4s ")
+
+  (defun clip-directory ()
+    "Put the current file name on the clipboard"
+    (interactive)
+    (let ((filename (if (equal major-mode 'dired-mode)
+                        default-directory
+                      (buffer-file-name))))
+      (when filename
+        (with-temp-buffer
+          (insert filename)
+          (clipboard-kill-region (point-min) (point-max)))
+        (message filename))))
   ;; GTD: capture items to inbox or tickler
   (setq org-capture-templates '(("t" "Todo [inbox]" entry
                                  (file+headline "~/Dropbox/org/inbox.org" "Tasks")
@@ -481,6 +477,8 @@ you should place your code here."
 
   (defun org-current-is-todo ()
     (string= "TODO" (org-get-todo-state)))
+
+  )
 ;; Do not write anything past this comment. This is where Emacs will
 ;; auto-generate custom variable definitions.
 (custom-set-variables
