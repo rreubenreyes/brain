@@ -1,0 +1,321 @@
+* Core Concepts
+M1075 - Mongo credit
+** Routing 
+*** Overview 
+(Routes live in the =routes/= folder)
+
+When people visit a URL, you need to do a bunch of things to present the data in the way you want it.
+
+#+BEGIN_SRC js
+const express = require('express');
+
+const router = express.Router();
+
+router.get('/', (req, res) => {
+  res.send('Hey! It works!');
+});
+
+router.get('/ping/:name', (req, res) => {
+  res.json({
+    ping: 'pong',
+    params: req.params,
+  });
+});
+
+module.exports = router;
+#+END_SRC
+
+*** The callback 
+- =req= :: refers to the request that was sent
+- =res= :: refers to the response that will be sent
+           
+**** =req.query=
+The query string that came with the request
+
+**** =res.send()=
+Will pass this data back into the requester
+
+**** =res.json()=
+Will specifically pass a JSON back to the requester
+
+*** =body-parser= 
+Express middleware which parses the URL sent with a request and outputs all request data to =req.params=
+
+** Templating
+(Templates live in the =views/= folder)
+
+We can choose which templating engine we want to use on our server by:
+#+BEGIN_SRC js
+const app = require('express');
+app.set('views', '/path/to/views');
+app.set('view engine', 'pug');
+#+END_SRC
+
+*** =res.render()= 
+This renders out a template for us (Pug/Jinja/Handlebars/whatever).
+
+#+BEGIN_SRC js
+// app.js
+const app = require('express');
+app.set('views', '/path/to/views');
+app.set('view engine', 'pug');
+
+app.get('/hello/:name', (req, res) => {
+    res.render('hello.pug', {
+        params: req.params,
+    });
+});
+#+END_SRC
+
+#+BEGIN_SRC pug
+// view.pug
+div
+    p Hello, #{params.name}
+#+END_SRC
+
+** Template Helpers 
+We can put helper libraries inside =views/helpers.js=. This is basically the =lib= folder that I normally use.
+
+Helpers are loaded via *middleware*, which simply does "something" for every request/response that comes through to the application. Express loads middleware with =app.use(callback)=.
+** Controllers and the MVC Pattern 
+*** Model 
+/(has alcohol and snacks)/
+Code that we write that access the database. 100% of the time you should align the schema of your model layer to your database.
+
+*** View 
+/(has the place to party)/
+Templates and stuff.
+
+*** Controller 
+/(making sure the model and view don't hate each other)/
+
+The TRAFFIC COP WEE WOO.
+
+_Controller_: Hey Model, give me some data
+_Model_: ok
+_Controller_: Okay View, here you go
+_View_: thx
+
+
+Basically, the Controller handles all the data layer logic that needs to happen between grabbing it from the Model and handling it to the View. Another way to think about a controller is a "*route handler*" (I just made this up but it makes sense to me).
+** Middleware and Error Handling 
+Middleware does stuff inbetween sending and receiving each request and response. In our app flow:
+
+=[ req ]= 
+    -> =[ bodyParser ]= -> =[ emailNormalize ]= -> =[ authorizeUser ]=
+        -> =[ res ]=
+
+*** Function structure 
+We mostly refer to middleware when using them on our applications themselves, where they intercept all incoming requests:
+#+BEGIN_SRC js
+// middleware function structure
+module.exports = (req, res, next) => {
+    // `next` is the next callback that needs to be executed
+    // in order to not use a `next`, you can pass `null`
+}
+#+END_SRC
+
+#+BEGIN_SRC js
+const myMiddleware = require('path/to/middleware')
+app.use(myMiddleware());
+#+END_SRC
+
+We can also use middleware in our routes as *handlers*:
+#+BEGIN_SRC js
+// middleware function structure
+module.exports = (req, res, next) => {
+    // `next` is the next callback that needs to be executed
+    // in order to not use a `next`, you can pass `null`
+}
+#+END_SRC
+
+#+BEGIN_SRC js
+const myHandler = require('path/to/middleware')
+const controller = require('path/to/my/controller')
+
+app.get('route/to/somewhere', myHandler(controller)) {
+    // do something
+}
+#+END_SRC
+
+*** Middleware Plinko 
+The /order/ in which we =use= our middleware functions determines the order in which they will be called.
+* Models and Storage
+** Caveat about Mongo 
+Technically you don't /have/ to define your schema for Mongo... but you should.
+** Creating a "Store" model  
+#+BEGIN_SRC js
+// models/store.js
+/* Mongoose is an agnostic platform for interfacing with Mongo */
+const mongoose = require('mongoose');
+
+/* use native promises */
+mongoose.Promise = global.Promise;
+
+/* slugify baby */
+const slug = require('slugs');
+
+const storeSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        trim: true,
+        required: 'Please enter a store name' // this will be passed as an error message
+    },
+    slug: String,
+    description: {
+        type: String,
+        trim: true,
+    }
+    tags: [String], // String array
+});
+
+// M O D E L M I D D L E W A R E
+storeSchema.pre('save', function(next) {
+    if (!this.isModified('name')) {
+        next();
+        return;
+    }
+    this.slug = slug(this.name);
+    next();
+});
+
+module.exports = mongoose.model('Store', storeSchema);
+#+END_SRC
+
+** Interfacing with Mongo 
+In our initializer script, all we need to do is import the model as well as initialize Mongo via Mongoose:
+
+#+BEGIN_SRC js
+// start.js
+require('dotenv').config({ path: 'variables.env' })
+const mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
+
+mongoose.connect(process.env.DATABASE);
+mongoose.connection.on('error', err => {
+    console.error('oops' + err.message);
+});
+
+require('./models/Store'); // on initialization, Mongoose makes this available as a global singleton, so we only need to initialize each model once
+#+END_SRC
+
+** Saving Stores and Mixins 
+Before we do anything with our models, we have to set up our controllers to be able to nag them for beer. 
+
+_Our routes so far_:
+#+BEGIN_SRC js
+// routes/index.js
+const store = require('../controllers/store');
+
+router.get('/', store.homePage);
+router.get('/add', store.addStore);
+#+END_SRC
+
+_Our store controllers so far_:
+#+BEGIN_SRC js
+exports.homePage = (req, res) => {
+  res.render('hello');
+};
+
+exports.addStore = (req, res) => {
+  res.send('it works');
+};
+#+END_SRC
+
+*** Architecting our MVC layers for the home page 
+As far as architecting this system so far, we should follow some rules:
+
+1. Our models are our single source of truth: Use *one*
+2. Our routes must have different functionality: Use *many*
+   a. By extension, we need to handle our logic differently for each route, so use *many*
+3. Our views... can do whatever they want, but use *as few as possible*
+
+In this case, it makes sense to have a single view that will allow users to perform CRUD operations on their store.
+
+_Our single dynamic view_: =modifyStore.pug=
+#+BEGIN_SRC pug
+extends layout
+
+block content
+    div.inner
+        h2 #{title}
+#+END_SRC
+
+**** Mixins 
+A /mixin/ will generate dynamic views based on what we pass into it. Similar premise as render props, but for me it helps to think of them like Sass mixins...
+
+In our case, we will create a mixin to render a dynamic form based on what route the user accesses.
+
+_Store form mixin_: =_storeForm.pug=
+#+BEGIN_SRC pug
+mixin storeForm(store = {})
+    form(action="/add" method="POST" class="card")
+        label(for="name") Name
+        input(type="text" name="name")
+        label(for="description") Description
+        textarea(name="description")
+        - const choices = ['Wifi', 'Open Late', 'Family Friendly', 'Vegeterian', 'Vegan', 'Licensed'];
+        ul.tags
+            each choice in choices
+                div.tag.tag__choice
+                    input(type="checkbox" id=choice value=choice name="tags")
+                    label(for=choice)=choice
+        input(type="submit" value="Save" class="button")
+#+END_SRC
+** Interfacing Controllers with Models 
+*** Initializing a model 
+We can initialize a new document by calling a model's constructor: =const store = new Store()=. We can also write this to our collection with =store.save()=.
+**** =store.save()= 
+This method is async. We need to =await= it.
+* Control Flow 
+** Flashing 
+*** Concept 
+When we trigger a redirect or GET request, we can /flash/
+some HTML onto the page which only persists in the current session. When we flash messages, they are displayed on the next page render and then immediately discarded.
+
+_StackOverflow_:
+The /flash/ is a special area of the session used for storing messages. Messages are written to the flash and cleared after being displayed to the user. The flash is typically used in combination with redirects, ensuring that the message is available to the next page that is to be rendered.
+
+We can use this concept in Express with =connect-flash=.
+
+#+BEGIN_SRC js
+const flash = require('connect-flash');
+
+app.use(flash);
+#+END_SRC
+
+*Flashes get rendered on the next request that is processed*.
+
+** Usage
+The method signature is: =flash(category, message)=. =flash()= always returns an object containing the data which has just been passed into it.
+
+#+BEGIN_SRC js
+exports.myController = async (req, res) => {
+  const myModel = new MyModel(req.body);
+  await myModel.save();
+  req.flash('success', 'woohoo');
+  res.send('myTemplate');
+}
+#+END_SRC
+
+With =connect-flash=, we define our own additional middleware function in order to make our flashes available to our handlers:
+#+BEGIN_SRC js
+app.use((req, res, next) => {
+  res.locals.flashes = req.flash();
+}
+#+END_SRC
+
+Within our template file, we can do:
+#+BEGIN_SRC pug
+div
+  if locals.flashes
+    - const categories = Object.keys(locals.flashes)
+    each category in categories
+      each message in flashes[category]
+        .flash(class=`flash--${category}) 
+          p=message
+#+END_SRC
+
+
+
+

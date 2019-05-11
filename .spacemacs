@@ -47,20 +47,19 @@ values."
                       )
      emacs-lisp
      git
-     helm
+     ivy
      javascript
      markdown
      org
-     themes-megapack
+     ;; themes-megapack
      typescript
+     syntax-checking
      ;; better-defaults
-
      ;; (shell :variables
      ;;        shell-default-height 30
      ;;        shell-default-position 'bottom)
      ;; spell-checking
-     syntax-checking
-     ;; version-control
+     version-control
      )
    ;; List of additional packages that will be installed without being
    ;; wrapped in a layer. If you need some configuration for these
@@ -69,8 +68,9 @@ values."
    dotspacemacs-additional-packages '(
                                       add-node-modules-path
                                       all-the-icons
+                                      doom-themes
+                                      dotenv-mode
                                       nand2tetris
-                                      nord
                                       prettier-js
                                       terraform-mode
                                       rjsx-mode
@@ -78,8 +78,7 @@ values."
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
    ;; A list of packages that will not be installed and loaded.
-   dotspacemacs-excluded-packages '(doom-city-lights
-                                    doom-city-lights-theme)
+   dotspacemacs-excluded-packages '()
    ;; Defines the behaviour of Spacemacs when installing packages.
    ;; Possible values are `used-only', `used-but-keep-unused' and `all'.
    ;; `used-only' installs only explicitly used packages and uninstall any
@@ -142,7 +141,7 @@ values."
    ;; List of themes, the first of the list is loaded when spacemacs starts.
    ;; Press <SPC> T n to cycle to the next theme in the list (works great
    ;; with 2 themes variants, one dark and one light)
-   dotspacemacs-themes '(nord
+   dotspacemacs-themes '(doom-nord
                          spacemacs-dark
                          spacemacs-light)
    ;; If non nil the cursor color matches the state color in UI Emacs.
@@ -333,8 +332,8 @@ before packages are loaded. If you are unsure, you should try in setting them in
         '(("*" (bold :foreground "#C7EF69" ))
           ("/" (italic :foreground "#94D4C3")) 
           ("_" (underline :foreground "#FFEB95"))
-          ("=" (:foreground "#f78c6c"))
-          ("~" (:foreground "#f78c6c"))
+          ("=" (:foreground "#B54F6F"))
+          ("~" (:foreground "#B54F6F"))
           ("+" (:strike-through t))))
 
 
@@ -363,8 +362,6 @@ layers configuration.
 This is the place where most of your configurations should be done. Unless it is
 explicitly specified that a variable should be set before a package is loaded,
 you should place your code here."
-  (setq global-flycheck-mode t)
-
   ;; use spaces instead of tabs, tab width to 4
   (setq-default c-basic-offset 4
                 tab-width 4
@@ -489,13 +486,14 @@ you should place your code here."
  ;; If there is more than one, they won't work right.
  '(ansi-color-names-vector
    ["#0a0814" "#f2241f" "#67b11d" "#b1951d" "#4f97d7" "#a31db1" "#28def0" "#b2b2b2"])
+ '(evil-want-Y-yank-to-eol nil)
  '(org-agenda-files
    (quote
     ("~/Dropbox/org/gtd.org" "~/Dropbox/org/tickler.org")))
  '(org-agenda-todo-list-sublevels t)
  '(package-selected-packages
    (quote
-    (all-the-icons-dired terraform-mode hcl-mode prettier-js company-quickhelp add-node-modules-path flycheck-pos-tip pos-tip rjsx-mode web-mode tagedit slim-mode scss-mode sass-mode pug-mode helm-css-scss haml-mode emmet-mode company-web web-completion-data nand2tetris doom-themes web-beautify tide typescript-mode flycheck org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download mmm-mode markdown-toc markdown-mode magit-gitflow livid-mode skewer-mode simple-httpd json-mode json-snatcher json-reformat js2-refactor multiple-cursors js2-mode js-doc htmlize helm-gitignore helm-company helm-c-yasnippet gnuplot gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link gh-md fuzzy evil-magit magit magit-popup git-commit ghub treepy graphql with-editor company-tern dash-functional tern company-statistics company color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized coffee-mode auto-yasnippet yasnippet ac-ispell auto-complete ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox spinner org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint indent-guide hydra hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-projectile helm-mode-manager helm-make projectile pkg-info epl helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu highlight elisp-slime-nav dumb-jump f dash s diminish define-word column-enforce-mode clean-aindent-mode bind-map bind-key auto-highlight-symbol auto-compile packed aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core popup async))))
+    (dotenv-mode doom-city-lights-theme doom-nord-theme kaolin-themes autothemer kaolin-galaxy-theme kaolin-theme git-gutter-fringe+ git-gutter-fringe fringe-helper git-gutter+ git-gutter diff-hl wgrep smex ivy-hydra counsel-projectile counsel swiper ivy all-the-icons-dired terraform-mode hcl-mode prettier-js company-quickhelp add-node-modules-path flycheck-pos-tip pos-tip rjsx-mode web-mode tagedit slim-mode scss-mode sass-mode pug-mode helm-css-scss haml-mode emmet-mode company-web web-completion-data nand2tetris doom-themes web-beautify tide typescript-mode flycheck org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download mmm-mode markdown-toc markdown-mode magit-gitflow livid-mode skewer-mode simple-httpd json-mode json-snatcher json-reformat js2-refactor multiple-cursors js2-mode js-doc htmlize helm-gitignore helm-company helm-c-yasnippet gnuplot gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link gh-md fuzzy evil-magit magit magit-popup git-commit ghub treepy graphql with-editor company-tern dash-functional tern company-statistics company color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized coffee-mode auto-yasnippet yasnippet ac-ispell auto-complete ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline powerline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox spinner org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint indent-guide hydra hungry-delete hl-todo highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-projectile helm-mode-manager helm-make projectile pkg-info epl helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eval-sexp-fu highlight elisp-slime-nav dumb-jump f dash s diminish define-word column-enforce-mode clean-aindent-mode bind-map bind-key auto-highlight-symbol auto-compile packed aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core popup async))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
