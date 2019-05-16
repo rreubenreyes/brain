@@ -11,7 +11,7 @@
  * @return { [Boolean, Object] } If none of the comparators return true, left value is
  *  false and right is empty. Else, left is true and right contains derived state.
  */
-export const deriveStateFromProps = ({ source, out, comparators }) =>
+export const deriveStateFromProps = ({ compare: source, to: out, comparators }) =>
     comparators.reduce(
         ([, obj], { mapProp: p, toState: s, truthCondition: check }) => {
             const truthy = check(source[s], out[p]);
