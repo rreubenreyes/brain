@@ -23,8 +23,9 @@ call plug#begin('~/.local/share/nvim/plugged')
   Plug 'simeji/winresizer'
 
 "" Editing
-  Plug 'tpope/vim-surround'
   Plug 'easymotion/vim-easymotion'
+  Plug 'tpope/vim-commentary'
+  Plug 'tpope/vim-surround'
 
 "" Visual
   Plug 'nathanaelkane/vim-indent-guides'
@@ -36,12 +37,12 @@ call plug#begin('~/.local/share/nvim/plugged')
 
 """"""""""""""""""""""""""""""""""""""""""""""""" SYNTAX
 
-"" Syntastic
-  Plug 'vim-syntastic/syntastic'
-  Plug 'mtscout6/syntastic-local-eslint.vim'
+"" ALE
+  Plug 'w0rp/ale'
 
 "" JavaScript
   Plug 'pangloss/vim-javascript'
+  Plug 'kern/vim-es7'
   Plug 'maxmellon/vim-jsx-pretty'
 
 "" TypeScript
@@ -68,6 +69,10 @@ set mouse=a
 map <leader><leader>c "*y
 map <leader><leader>x "*d
 map <leader><leader>v "*p
+
+"" Commenting
+nnoremap <leader>cl gcc<CR>
+map <leader>cc gc
 
 """"""""""""""""""""""""""""""""""""""""""""""""" CONFIG AND PLUGINS
 "" Reload plugins
@@ -141,32 +146,28 @@ map <leader>tc :tabclose
 map <leader>tC :tabclose<CR> 
 
 """""""""" 
-"""""""""" [ SYNTASTIC ]
+"""""""""" [ ALE ]
 """""""""" 
 
-"" Set up checkers
-let g:syntastic_javascript_checkers=['eslint']
+"" Layout
+let g:ale_sign_column_always=1
+hi link ALEErrorSign    Error
+hi link ALEWarningSign  Warning
+let g:ale_sign_error = '•'
+let g:ale_sign_warning = '•'
 
-"" Airline config
-set statusline+=%#warningmsg#
-set statusline+=%{SyntasticStatuslineFlag()}
-set statusline+=%*
+"" Enable Airline section
+let g:airline#extnsions#ale#enabled=1
 
-"" When should I run?
-let g:syntastic_always_populate_loc_list = 1
-let g:syntastic_auto_loc_list = 1
-let g:syntastic_check_on_open = 1
+"" Show list on lint
+let g:ale_open_list=1
+let g:ale_keep_list_window_open=1
 
-"" Error symbols 
-let g:syntastic_error_symbol = "❌"
-let syntastic_style_error_symbol = "❌"
-let g:syntastic_warning_symbol = "🤔"
-let syntastic_style_warning_symbol = "🤔"
+"" Set up linters
+let b:ale_fixers=['eslint']
 
-highlight link SyntasticErrorSign SignColumn
-highlight link SyntasticWarningSign SignColumn
-highlight link SyntasticStyleErrorSign SignColumn
-highlight link SyntasticStyleWarningSign SignColumn
+"" Set up fixers
+let b:ale_fixers=['prettier', 'eslint']
 
 """""""""" 
 """""""""" [ THEME ]
