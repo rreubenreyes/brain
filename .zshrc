@@ -8,6 +8,13 @@ export ZSH="/Users/ruby/.oh-my-zsh"
 # See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
 ZSH_THEME=""
 
+# nvm fix
+export NVM_DIR="$HOME/.nvm"
+  [ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"  # This loads nvm
+  [ -s "/usr/local/opt/nvm/etc/bash_completion" ] && . "/usr/local/opt/nvm/etc/bash_completion"  # This loads nvm bash_completion
+
+  export VIMRC="~/.config/nvim/init.vim"
+#
 # Set list of themes to load
 # Setting this variable when ZSH_THEME=random
 # cause zsh load theme from this variable instead of
@@ -85,9 +92,6 @@ prompt pure
 # else
 #   export EDITOR='mvim'
 # fi
-hello () {
-	echo "hello"
-}
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
@@ -103,39 +107,25 @@ hello () {
 # Example aliases
 # Assign an alias to the function
 alias again='$(fc -ln -1)'
-alias clip='pbcopy'
 alias chrome='open -a "Google Chrome"'
-alias config='vim ~/.zshrc'
-alias dev='cd ~/git-repos'
+alias config='nvim ~/.zshrc'
+alias dev='cd ~/dev'
 alias emacs='/Applications/Emacs.app/Contents/MacOS/Emacs'
+alias e="emacsclient -t --socket-name=/tmp/emacs1000/server"
 alias finder='open -a "Finder"'
-alias freelance='cd ~/git-repos/_freelance'
-alias hackathons='cd ~/git-repos/_hackathons'
 alias here='git commit -m'
 alias hereyougo='git add --all && git commit -m'
-alias hereyougoeth='git add --all && sgc'
-alias journal='journal.sh'
-alias g='gatsby'
-alias gdev='gatsby develop'
+alias get='ls -laH | grep'
 alias gpo='git push origin'
-alias notes='~/Dropbox/Apps/Editorial/_notes'
-alias notesd='~/Dropbox/Apps/Editorial/_notes/_projects/dev'
 alias ns='npm i --save'
 alias nsd='npm i --save-dev'
 alias nuke='rm -rf'
+alias nvimrc='nvim ~/.config/nvim/init.vim'
 alias org='~/Dropbox/org'
 alias please='sudo $(fc -ln -1)'
 alias preview='open -a "Preview"'
-alias put='pbpaste'
-alias scott='cd ~/git-repos/level-up-tutorials'
-alias tcif='cd ~/git-repos/_webdev/try-coding-its-fun'
-alias webdev='cd ~/git-repos/_webdev'
-alias why='echo "javascript is love, javascript is life"'
 alias wut='ls -laH'
-alias vs='code'
-alias vtcif='vs ~/git-repos/_webdev/TCIF.code-workspace'
-alias vydkjs='vs ~/git-repos/_webdev/YDKJS.code-workspace'
-alias wes='cd ~/git-repos/wes-bos'
-alias ydkjs='cd ~/git-repos/_webdev/ydkjs-exercises'
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
